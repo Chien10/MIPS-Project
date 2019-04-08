@@ -1,0 +1,39 @@
+Chương trình phải đảm bảo đầy đủ các hàm ở phần 4
+Các hàm phải sử dụng các biến cục bộ để tính toán, không được dùng biến toàn cục
+
+Các nhãn cần có:
+- Nhập dữ liệu vào từ bàn phím
+- Nhận dữ liệu vào từ tập tin input.txt (cú pháp được nêu trong Project 2)
+- Xuất kết quả 9 yêu cầu ra tập tin output.txt
+- Kiểm tra tính hợp lệ của chuỗi TIME
+- Xuất ra 9 yêu cầu 
+- Chín nhãn tương ứng với 9 yêu cầu trên
+- Chuyển đổi một chuỗi ký tự thành một số tương ứng (Do chuỗi TIME phải có kiểu char*)
+- Nhãn thoát khỏi chương trình
+
+Các hàm chính và các hàm con hỗ trợ
+Date
+Convert
+    |
+    Đổi chỗ ngày với tháng
+    |
+    Đổi '/' thứ hai thành ','
+Day
+ |
+ Chuyển đổi chuỗi ký tự thành số tương ứng
+Month
+ |
+ Chuyển đổi chuỗi ký tự thành số tương ứng
+Year
+ |
+ Chuyển đổi chuỗi ký tự thành số tương ứng
+LeapYear
+      |
+      Chuyển đổi chuỗi ký tự thành số tương ứng
+GeTime
+    |
+    Chuyển đổi chuỗi ký tự thành số tương ứng
+Weekday
+    |
+    Chuyển đổi chuỗi ký tự thành số tương ứng
+Can chi của năm vừa nhập
