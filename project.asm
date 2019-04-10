@@ -3,6 +3,9 @@
 choice:			.word 		0
 result:			.word 		0
 
+can:			.space		"Giap", "At", "Binh", "Dinh", "Mau", "Ky", "Canh", "Tan", "Nham", "Quy"
+chi:			.space		"Ty", "Suu", "Dan", "Meo", "Thin", "Ty", "Ngo", "Mao", "Than", "Dau", "Tuat", "Hoi"
+
 TIME:			.space		40		
 TIME_1:			.space		40
 TIME_2:			.space		40
@@ -77,12 +80,7 @@ invalid_choice:	.asciiz		"Lua chon khong hop le. Vui long nhap lai.\n"
 output_result:	.asciiz		"			Ket qua: "
 
 				.text
-main:	
-		la $a0, TIME_1
-		jal get_input
-
-get_input:
-				
+main:			
 
 print_tasks:
 			addi $v0, $0, 4
