@@ -78,3 +78,58 @@ output_result:	.asciiz		"			Ket qua: "
 
 				.text
 main:	
+		la $a0, TIME_1
+		jal get_input
+
+get_input:
+				
+
+print_tasks:
+			addi $v0, $0, 4
+			la $a0, intro_string
+			syscall
+
+			li $v0, 4
+			la $a0, first_choice
+			syscall
+
+			addi $v0, $zero, 4
+			la $a0, second_choice
+			syscall
+			li $v0, 4
+			la $a0, sec_choice_a
+			syscall
+			addi $v0, $0, 4
+			la $a0, sec_choice_b
+			syscall
+			li $v0, 4
+			la $a0, sec_choice_c
+			syscall
+
+			addi $v0, $zero, 4
+			la $a0, third_choice
+			syscall
+
+			li $v0, 4
+			la $a0, fourth_choice
+			syscall
+
+			addi $v0, $zero, 4
+			la $a0, sixth_choice
+			syscall
+
+			li $v0, 4
+			la $a0, seventh_choice
+			syscall
+
+			addi $v0, $zero, 4
+			la $a0, eighth_choice
+			syscall
+
+			li $v0, 4
+			la $a0, seventh_choice
+			syscall
+
+exit:
+	li $v0, 10
+	syscall
