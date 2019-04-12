@@ -40,6 +40,31 @@ fifth_choice:	.asciiz		"5. Cho biet ngay vua nhap la ngay thu may ke tu ngay 1/1
 sub_fifth_choice:			.asciiz		"Ngay vua nhap la ngay thu "
 
 sixth_choice:	.asciiz		"6. Cho biet can chi cua nam vua nhap.\n"
+can1:			.asciiz		"Giap" 
+can2:			.asciiz		" At "
+can3:			.asciiz		"Binh" 
+can4:			.asciiz		"Dinh"
+can5:			.asciiz		" Mau"
+can6:			.asciiz		"  Ky"
+can7:			.asciiz		"Canh"
+can8:			.asciiz		" Tan"
+can9:			.asciiz		"Nham"
+can10:			.asciiz		" Quy"
+can:			.word		can1, can2, can3, can4, can5, can6, can7, can8, can9, can10
+
+chi1:			.asciiz		" Ty "
+chi2:			.asciiz		" Suu"
+chi3:			.asciiz		" Dan"
+chi4:			.asciiz		" Meo"
+chi5:			.asciiz		"Thin"
+chi6:			.asciiz		" Ty "
+chi7:			.asciiz		" Ngo"
+chi8:			.asciiz		" Mao"
+chi9:			.asciiz		"Than"
+chi10:			.asciiz		" Dau"
+chi11:			.asciiz		"Tuat"
+chi12:			.asciiz		" Hoi"
+chi:			.word		chi1, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, chi10, chi11, chi12
 
 seventh_choice:	.asciiz		"7. Cho biet khoang thoi gian giua chuoi TIME_1 va TIME_2.\n"
 sub_seventh_choice:			.asciiz		"Khoang thoi gian giua hai chuoi la: "
@@ -67,12 +92,33 @@ get_input:
 			la $t3, year
 			jal get_time_from_keyboard
 
+			# check valid input #
+
+			move $a3, $v1	# $v1 is poniting to TIME 
+					
+			lw $a2, can
+			lw $a1, chi
+			jal execute_task_sixth
+			li $v0, 4
+			move $a0, $a2
+			syscall
+			li $v0, 4
+			move $a0, $a1
+			syscall
+			j exit
+
 raise_invalid_input:
 					addi $v0, $0, 4
 					la $a0, invalid_input 	
 					syscall
 
 					j get_input			# Ask for input, again!
+# Arguments:
+# 			$a0: char* TIME
+#			$t1: .space day
+# 			$t2: .space month
+#			$t3: .space year
+# Return value:	$v1 points to TIME(char*)
 get_time_from_keyboard:
 						addi $sp, $sp, -20
 						sw $ra, 0($sp)	# Store the address of the next line of: jal get_time_from_keyboard
@@ -131,14 +177,49 @@ get_time_from_keyboard:
 						sw $a0, 16($sp)
 
 						# Load stored input into registers
-						lw $t3, 16($sp)
-						lw $t2, 12($sp)
-						lw $t1, 8($sp)
 						lw $t0, 4($sp)	
+
+						# Convert month from char into int
+						lw $t1, 8($sp)
+						add $a0, $0, $t1 		# $a0 points to day 
+						li $a3, 10
+						jal atoi
+						add $t1, $0, $v1		# Load return value from $v1 into $t1
+
+						# Do the same thing for month 
+						lw $t2, 12($sp)
+						add $a0, $zero, $t2
+						li $a3, 10
+						jal atoi
+						add $t2, $zero, $v1
+					
+						#  and year
+						lw $t3, 16($sp)
+						add $a0, $zero, $t3
+						li $a3, 10
+						jal atoi
+						add $t3, $zero, $v1
+						
 						jal Date
 
-						j exit
+						j get_time_from_keyboard_exit
 
+get_time_from_keyboard_exit:
+							lw $ra, 0($sp)
+							lw $a0, 4($sp)	
+							lw $t1, 8($sp)
+							lw $t2, 12($sp)
+							lw $t3, 16($sp)
+
+							addi $sp, $sp, 20
+
+							move $v1, $a0	# $v1 keeps the return pointer referring to TIME
+
+							jr $ra
+
+# Compute length of input string and raise error if the number of elements exceed a given value
+# Arguments:	$a0: input from keyboard
+#				$t3: maximum number of characters
 compute_string_length:
 						add $t0, $0, $a0		# $t0 points to $a0 containing input string
 						add $a2, $zero, $t3
@@ -157,6 +238,8 @@ is_input_len_valid:
 					bgt $t1, $a2, raise_invalid_input	# If sum > $a2
 					jr $ra 				# Go back and execute jal contains_only_digits	
 
+# Check if input contains only digit
+# Argument:		$a0: input in char*
 contains_only_digits:
 						add $t0, $0, $a0		# $t0 points to $a0 contaning input string
 contains_only_digits_loop:
@@ -219,16 +302,18 @@ print_tasks:
 			la $a0, seventh_choice
 			syscall
 
+# Arguments: 
+#			day: int    -> $t1
+#			month: int  -> $t2
+#			year: int   -> $t3
+#			TIME: char* -> $t0
+# Return value: $t0
 Date:
-	# $t0 points to TIME
-	# Convert day from char into int
-	add $a0, $0, $t1 		# $a0 points to day 
-	jal atoi
-	add $s1, $0, $v1		# Load return value from $v1 into $t1
-
 	addi $s3, $0, 47	# 47 is '/' in ASCII
 
-	# Let put it ... lazily into TIME
+	# Let put day ... lazily into TIME
+	move $s1, $t1
+
 	addi $s2, $0, 10
 	div $s1, $s2
 	mflo $s1 		# quotient
@@ -240,11 +325,9 @@ Date:
 	sb $s2, 1($t0)
 	sb $s3, 2($t0)
 	
-	# Do the same thing for month 
-	add $a0, $zero, $t2
-	jal atoi
-	add $s1, $zero, $v1
 	# Put month
+	move $s1, $t2
+
 	addi $s2, $0, 10
 	div $s1, $s2
 	mflo $s1 		
@@ -256,11 +339,9 @@ Date:
 	sb $s2, 4($t0)
 	sb $s3, 5($t0)
 
-	# ... and year
-	add $a0, $zero, $t3
-	jal atoi
-	add $s1, $zero, $v1
 	# Put year (lazily!)
+	move $s1, $t3
+
 	addi $s2, $0, 1000			#t1 = s2
 	div $s1, $s2 				#t0 = s1
 	mflo $s3					#t2 = s3	
@@ -289,19 +370,16 @@ Date:
 
 	sb $zero, 10($t0) # '\0' at the end of TIME_1
 
-	li $v0, 4
-	move $a0, $t0
-	syscall
+	jr $ra
 
-	j exit
-
+# Argument: $a1: char* TIME, $a3: character to terminate
 atoi:
 		li $v1, 0	# $v1 is a result
 		add $a1, $zero, $a0 # $a1 refers to argument $a0
 atoi_loop:
 		lb $a2, 0($a1)
 
-		beq $a2, 10, atoi_finish
+		beq $a2, $a3, atoi_finish
 		# Convert char into int: int = char - '0'
 		addi $a2, $a2, -48	
 		# $v0 = $v0 * 10
@@ -316,6 +394,137 @@ atoi_loop:
 		j atoi_loop
 atoi_finish:
 		jr $ra
+
+# Arguments: $a3: char* TIME
+#			 $a2: can array
+#            $a1: chi array
+execute_task_sixth:
+					addi $sp, $sp, -16
+					sw $ra, 0($sp)
+					sw $a3, 4($sp)		# TIME
+					sw $a2, 8($sp)		# can
+					sw $a1, 12($sp)		# chi
+
+					lw $a0, 4($sp)
+					jal Year
+					move $s0, $v1		# Store result into $s0
+					
+					# Determine can
+					li $s6, 6
+					add $s7, $s0, $s6
+					li $s6, 10
+					div $s7, $s6
+					mfhi $s7		# (nam + 6) % 10
+
+					li $s6, 5
+					mult $s7, $s6
+					mflo $s7
+
+					lw $a0, 8($sp)
+					add $a0, $a0, $s7
+					
+					sw $a0, 8($sp)		# Store result in corresponding block
+
+					# Determine chi
+					li $s6, 8
+					add $s7, $s0, $s6
+					li $s6, 12
+					div $s7, $s6
+					mfhi $s7		# (nam + 8) % 12
+
+					li $s6, 5
+					mult $s7, $s6
+					mflo $s7
+
+					lw $a0, 12($sp)
+					add $a0, $a0, $s7
+
+					sw $a0, 12($sp)
+					
+					lw $ra, 0($sp)
+					lw $a3, 4($sp)		
+					lw $a2, 8($sp)		
+					lw $a1, 12($sp)		
+
+					addi $sp, $sp, 16
+
+					jr $ra
+
+# Argument: $a0 char *TIME
+# Return:	$v1
+Day:
+	move $s0, $a0
+	li $v1, 0
+	li $s4, 47
+Day_loop:
+		lb $s1, 0($s0)
+
+		beq $s1, $s4, Day_finish
+
+		addi $s1, $s1, -48
+
+		li $s2, 10
+		mult $v1, $s2
+		mflo $v1
+
+		add $v1, $v1, $s1
+
+		addi $s0, $s0, 1
+
+		j Day_loop
+Day_finish:
+			jr $ra
+
+# Argument: $a0 char *TIME
+# Return:	$v1
+Month:
+	move $s0, $a0
+	addi $s0, $s0, 3
+	li $v1, 0
+	li $s4, 47
+Month_loop:
+		lb $s1, 0($s0)
+
+		beq $s1, $s4, Month_finish
+
+		addi $s1, $s1, -48
+
+		li $s2, 10
+		mult $v1, $s2
+		mflo $v1
+
+		add $v1, $v1, $s1
+
+		addi $s0, $s0, 1
+
+		j Day_loop
+Month_finish:
+			jr $ra
+
+# Argument: $a0: char* TIME
+# Return: $v1
+Year:
+	move $s0, $a0
+	addi $s0, $s0, 6
+	li $v1, 0		# return value
+Year_loop:
+			lb $s1, 0($s0)
+			
+			beq $s1, $0, Year_finish
+
+			addi $s1, $s1, -48
+
+			li $s2, 10
+			mult $v1, $s2
+			mflo $v1
+
+			add $v1, $v1, $s1
+
+			addi $s0, $s0, 1
+
+			j Year_loop
+Year_finish:
+			jr $ra
 
 exit:
 	li $v0, 4
