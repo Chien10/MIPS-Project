@@ -87,15 +87,133 @@ get_input:
 			la $a0, TIME
 			la $a1, TEMP 		# To store day, month and year before combining them into TIME
 			jal get_time_from_keyboard
-			add $a0, $0, $v1	# Assign return value to $a0
+			add $a3, $0, $v1	# Assign return value to $a3
 			
-			# check valid input #
+			# check if input is valid #
 
-			lw $a2, can
-			lw $a1, chi
-			jal execute_task_sixth
+			jal print_tasks
+			
+get_choice:
+			li $v0, 4
+			la $a0, input_choice
+			syscall
 
-			j exit
+			# Get choice in int type
+			li $v0, 5
+			syscall
+			move $t0, $v0
+			# Switch case structure
+			# Ref: References/Kien_truc_bo_lenh_MIPS.pdf
+			addi $t1, $0, 1
+			bne $t0, $t1, execute_task_second
+# Argument: $a3: char* TIME
+execute_task_first:
+					move $a0, $a3
+					li $v0, 4
+					syscall
+
+					j exit
+# Argument
+execute_task_second:
+					addi $t2, $t0, -2
+					bne $t2, $zero, execute_task_third
+
+					# Do something #
+
+					j exit
+
+execute_task_third:
+					addi $t2, $t0, -3
+					bne $t2, $zero, execute_task_fourth
+
+					j exit
+
+execute_task_fourth:
+					addi $t2, $t0, -4
+					bne $t2, $0, execute_task_fifth
+
+					j exit
+
+execute_task_fifth:
+					addi $t2, $t0, -5
+					bne $t2, $0, execute_task_sixth
+
+					j exit
+# Arguments: $a3: char* TIME
+#			 $a2: can array
+#            $a1: chi array
+# Return : $v0: can, $v1: chi
+execute_task_sixth:
+					addi $t2, $t0, -6
+					bne $t2, $zero, execute_task_seventh
+
+					# 6th choice #
+					addi $sp, $sp, -4
+					sw $ra, 0($sp)
+
+					move $a0, $a3
+					jal Year
+					move $s0, $v1		# Store result into $s0
+					
+					# Determine can
+					li $s6, 6
+					add $s7, $s0, $s6
+					li $s6, 10
+					div $s7, $s6
+					mfhi $s7		# (nam + 6) % 10
+
+					li $s6, 5
+					mult $s7, $s6
+					mflo $s7
+
+					add $a2, $a2, $s7
+					
+					move $v0, $a2		# Store pointer of can into $v0
+
+					# Determine chi
+					li $s6, 8
+					add $s7, $s0, $s6
+					li $s6, 12
+					div $s7, $s6
+					mfhi $s7		# (nam + 8) % 12
+
+					li $s6, 5
+					mult $s7, $s6
+					mflo $s7
+
+					add $a1, $a1, $s7
+
+					add $v1, $0, $a1
+		
+					lw $ra, 0($sp)
+					addi $sp, $sp, 4
+
+					jr $ra
+
+					j exit
+
+execute_task_seventh:
+					addi $t2, $t0, -7
+					bne $t2, $0, execute_task_eighth
+
+					j exit
+
+execute_task_eighth:
+					addi $t2, $t0, -8
+					bne $t2, $0, execute_task_ninth
+
+					j exit
+
+execute_task_ninth:
+					addi $t2, $t0, -9
+					bne $t2, $zero, raise_invalid_choice
+
+raise_invalid_choice:
+					li $v0, 4
+					la $a0, input_choice
+					syscall
+
+					j get_choice
 
 raise_invalid_input:
 					addi $v0, $0, 4
@@ -275,8 +393,10 @@ print_tasks:
 			syscall
 
 			li $v0, 4
-			la $a0, seventh_choice
+			la $a0, ninth_choice
 			syscall
+
+			jr $ra
 
 # Arguments: 
 #			day: int    -> $a1
@@ -371,52 +491,6 @@ atoi_loop:
 		j atoi_loop
 atoi_finish:
 		jr $ra
-
-# Arguments: $a0: char* TIME
-#			 $a2: can array
-#            $a1: chi array
-# Return : $v0: can, $v1: chi
-execute_task_sixth:
-					addi $sp, $sp, -4
-					sw $ra, 0($sp)
-
-					jal Year
-					move $s0, $v1		# Store result into $s0
-					
-					# Determine can
-					li $s6, 6
-					add $s7, $s0, $s6
-					li $s6, 10
-					div $s7, $s6
-					mfhi $s7		# (nam + 6) % 10
-
-					li $s6, 5
-					mult $s7, $s6
-					mflo $s7
-
-					add $a2, $a2, $s7
-					
-					move $v0, $a2		# Store pointer of can into $v0
-
-					# Determine chi
-					li $s6, 8
-					add $s7, $s0, $s6
-					li $s6, 12
-					div $s7, $s6
-					mfhi $s7		# (nam + 8) % 12
-
-					li $s6, 5
-					mult $s7, $s6
-					mflo $s7
-
-					add $a1, $a1, $s7
-
-					add $v1, $0, $a1
-		
-					lw $ra, 0($sp)
-					addi $sp, $sp, 4
-
-					jr $ra
 
 # Argument: $a0 char *TIME
 # Return:	$v1
