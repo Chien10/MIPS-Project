@@ -190,6 +190,7 @@ get_choice:
 
 			# $t1 and $t2 are Switch case registers.
 			addi $t1, $0, 1
+			# lệnh bne không nhận tham số là label. bị lỗi phần này!!!
 			bne choice, $t1, execute_task_second
 
 # Argument: $a0: char* TIME
