@@ -87,84 +87,73 @@ hooray:			.asciiz		"\nHoorayyy!\n"
 main:			
 
 get_input:
-			addi $sp, $sp, -12
-			sw $ra, 0($sp)
-			sw $a0, 4($sp)
-			sw $a1, 8($sp)
+	addi $sp, $sp, -12
+	sw $ra, 0($sp)
+	sw $a0, 4($sp)
+	sw $a1, 8($sp)
 
-			la $a0, TIME
-			la $a1, TEMP 		# To store day, month and year before combining them into TIME
+	la $a0, TIME
+	la $a1, TEMP	# To store day, month and year before combining them into TIME
 			
-			jal get_time_from_keyboard
+	jal get_time_from_keyboard
 
-			sw $a0, TIME 		# Store result back to TIME
+	sw $a0, TIME	# Store result back to TIME
 
-			lw $ra, 0($sp)
-			lw $a0, 4($sp)
-			lw $a1, 8($sp)
-			addi $sp, $sp, 12
+	lw $ra, 0($sp)
+	lw $a0, 4($sp)
+	lw $a1, 8($sp)
+	addi $sp, $sp, 12
 
-			jr $ra
+	jr $ra
 
-			# check if input is valid #
+	# check if input is valid #
 
 print_tasks:
-			addi $sp, $sp, -12
-			sw $ra, 0($sp)
-			sw $v0, 4($sp)
-			sw $a0, 8($sp)
-
-			addi $v0, $0, 4
-			la $a0, intro_string
-			syscall
-
-			li $v0, 4
-			la $a0, first_choice
-			syscall
-
-			addi $v0, $zero, 4
-			la $a0, second_choice
-			syscall
-			li $v0, 4
-			la $a0, sec_choice_a
-			syscall
-			addi $v0, $0, 4
-			la $a0, sec_choice_b
-			syscall
-			li $v0, 4
-			la $a0, sec_choice_c
-			syscall
-
-			addi $v0, $zero, 4
-			la $a0, third_choice
-			syscall
-
-			li $v0, 4
-			la $a0, fourth_choice
-			syscall
-
-			addi $v0, $zero, 4
-			la $a0, sixth_choice
-			syscall
-
-			li $v0, 4
-			la $a0, seventh_choice
-			syscall
-
-			addi $v0, $zero, 4
-			la $a0, eighth_choice
-			syscall
-
-			li $v0, 4
-			la $a0, ninth_choice
-			syscall
-			
-			lw $ra, 0($sp)
-			lw $v0, 4($sp)
-			lw $a0, 8($sp)
-			addi $sp, $sp, 12
-
-			jr $ra
+	addi $sp, $sp, -12
+	sw $ra, 0($sp)
+	sw $v0, 4($sp)
+	sw $a0, 8($sp)
+	addi $v0, $0, 4
+	la $a0, intro_string
+	syscall
+	li $v0, 4
+	la $a0, first_choice
+	syscall
+	addi $v0, $zero, 4
+	la $a0, second_choice
+	syscall
+	li $v0, 4
+	la $a0, sec_choice_a
+	syscall
+	addi $v0, $0, 4
+	la $a0, sec_choice_b
+	syscall
+	li $v0, 4
+	la $a0, sec_choice_c
+	syscall
+	addi $v0, $zero, 4
+	la $a0, third_choice
+	syscall
+	li $v0, 4
+	la $a0, fourth_choice
+	syscall
+	addi $v0, $zero, 4
+	la $a0, sixth_choice
+	syscall
+	li $v0, 4
+	la $a0, seventh_choice
+	syscall
+	addi $v0, $zero, 4
+	la $a0, eighth_choice
+	syscall
+	li $v0, 4
+	la $a0, ninth_choice
+	syscall
+	lw $ra, 0($sp)
+	lw $v0, 4($sp)
+	lw $a0, 8($sp)
+	addi $sp, $sp, 12
+	jr $ra
 
 get_choice:
 			addi $sp, $sp, -16
@@ -194,245 +183,220 @@ get_choice:
 
 # Argument: $a0: char* TIME
 execute_task_first:
-					li $v0, 4
-					syscall
-
-					j exit
+	li $v0, 4
+	syscall
+	j exit
 # Argument
 execute_task_second:
-					addi $t2, $t0, -2
-					bne $t2, $zero, execute_task_third
-
-					# Do something #
-
-					j exit
-
+	addi $t2, $t0, -2
+	bne $t2, $zero, execute_task_third
+	# Do something #
+	j exit
+# Argument
 execute_task_third:
-					addi $t2, $t0, -3
-					bne $t2, $zero, execute_task_fourth
+	addi $t2, $t0, -3
+	bne $t2, $zero, execute_task_fourth
 
-					j exit
-
+	j exit
+# Argument
 execute_task_fourth:
-					addi $t2, $t0, -4
-					bne $t2, $0, execute_task_fifth
-
-					j exit
-
+	addi $t2, $t0, -4
+	bne $t2, $0, execute_task_fifth
+	j exit
+# Argument
 execute_task_fifth:
-					addi $t2, $t0, -5
-					bne $t2, $0, execute_task_sixth
-
-					j exit
+	addi $t2, $t0, -5
+	bne $t2, $0, execute_task_sixth
+	j exit
 # Arguments: $a0: char* TIME
 #			 $a2: can array
 #            $a1: chi array
 execute_task_sixth:
-					addi $t2, $t0, -6
-					bne $t2, $zero, execute_task_seventh
-
-					# 6th choice #
-					jal Year
-					move $s0, $v0		# Store result into $s0
-					
-					# Determine can
-					li $s6, 6
-					add $s7, $s0, $s6
-					li $s6, 10
-					div $s7, $s6
-					mfhi $s7		# (nam + 6) % 10
-
-					li $s6, 5
-					mult $s7, $s6
-					mflo $s7
-
-					add $a2, $a2, $s7
-					
-					# Determine chi
-					li $s6, 8
-					add $s7, $s0, $s6
-					li $s6, 12
-					div $s7, $s6
-					mfhi $s7		# (nam + 8) % 12
-
-					li $s6, 5
-					mult $s7, $s6
-					mflo $s7
-
-					add $a1, $a1, $s7					
-
-					lw $a0, can_chi
-					jal standardize_can_chi_string
-
-					j exit
-
+	addi $t2, $t0, -6
+	bne $t2, $zero, execute_task_seventh
+	# 6th choice #
+	jal Year
+	move $s0, $v0		# Store result into $s0
+	# Determine can
+	li $s6, 6
+	add $s7, $s0, $s6
+	li $s6, 10
+	div $s7, $s6
+	mfhi $s7		# (nam + 6) % 10
+	li $s6, 5
+	mult $s7, $s6
+	mflo $s7
+	add $a2, $a2, $s7
+	# Determine chi
+	li $s6, 8
+	add $s7, $s0, $s6
+	li $s6, 12
+	div $s7, $s6
+	mfhi $s7		# (nam + 8) % 12
+	li $s6, 5
+	mult $s7, $s6
+	mflo $s7
+	add $a1, $a1, $s7					
+	lw $a0, can_chi
+	jal standardize_can_chi_string
+	j exit
+# Argument
 execute_task_seventh:
-					addi $t2, $t0, -7
-					bne $t2, $0, execute_task_eighth
-
-					j exit
-
+	addi $t2, $t0, -7
+	bne $t2, $0, execute_task_eighth
+	j exit
+# Argument
 execute_task_eighth:
-					addi $t2, $t0, -8
-					bne $t2, $0, execute_task_ninth
-
-					j exit
-
+	addi $t2, $t0, -8
+	bne $t2, $0, execute_task_ninth
+	j exit
+# Argument
 execute_task_ninth:
-					addi $t2, $t0, -9
-					bne $t2, $zero, raise_invalid_choice
-
+	addi $t2, $t0, -9
+	bne $t2, $zero, raise_invalid_choice
 raise_invalid_choice:
-					li $v0, 4
-					la $a0, input_choice
-					syscall
-
-					j get_choice
-
+	li $v0, 4
+	la $a0, input_choice
+	syscall
+	j get_choice
 raise_invalid_input:
-					addi $v0, $0, 4
-					la $a0, invalid_input 	
-					syscall
+	addi $v0, $0, 4
+	la $a0, invalid_input 	
+	syscall
+	j get_input			# Ask for input, again!
+	
 
-					j get_input			# Ask for input, again!
 # Arguments:
 # 			$a0: char* TIME
 #			$a1: .space TEMP to strore day, month, year transiently
 # Return value:	$a0 points to TIME(char*)
 get_time_from_keyboard:
-						addi $sp, $sp, -32
-						sw $ra, 0($sp)	# Store the address of the next line of: jal get_time_from_keyboard
-						sw $a0, 4($sp)	# Address of TIME
-						sw $a1, 8($sp)	# Address of TEMP
-						sw $v0, 24($sp)
-						sw $a3, 28($sp)
-						# 12($sp), 16($sp) and 20($sp) are used to store day, month, year in int type
+	addi $sp, $sp, -32
+	sw $ra, 0($sp)	# Store the address of the next line of: jal get_time_from_keyboard
+	sw $a0, 4($sp)	# Address of TIME
+	sw $a1, 8($sp)	# Address of TEMP
+	sw $v0, 24($sp)
+	sw $a3, 28($sp)
+	# 12($sp), 16($sp) and 20($sp) are used to store day, month, year in int type
 						
-						# Get day
-						li $v0, 4
-						la $a0, input_day
-						syscall
-						# this is how to get day as a string
-						li $v0, 8		# 8 is to read_string
-						lw $a0, 8($sp)	# Input is stored in 8($sp) but we need to load its address into $a0
-						li $a1, 1024		# $a1 determines the maximum number of characters stored, 1024 bytes
-										# input will have a form (day: '10'): |'1'|'0'|'\n'|'\0'|
-						syscall
+	# Get day
+	li $v0, 4
+	la $a0, input_day
+	syscall
+	# this is how to get day as a string
+	li $v0, 8		# 8 is to read_string
+	lw $a0, 8($sp)	# Input is stored in 8($sp) but we need to load its address into $a0
+	li $a1, 1024		# $a1 determines the maximum number of characters stored, 1024 bytes
+					# input will have a form (day: '10'): |'1'|'0'|'\n'|'\0'|
+	syscall
 
-						# Check if the day has at most 2 characters (ignore '\n' and '\0')
-						li $a3, 2		# At most 2 characters
-						jal compute_string_length
-						beq $v0, $0, raise_invalid_input		# Invalid input if $v0 == $0
-						# Check if input is a digit-string
-						jal contains_only_digits
-						beq $v0, $0, raise_invalid_input		# Invalid input if $v0 == $0
-						# Convert month from char into int
-						li $a3, 10
-						jal atoi
-						# Store day (int type) into stack
-						sw $v0, 12($sp)		
+	# Check if the day has at most 2 characters (ignore '\n' and '\0')
+	li $a3, 2		# At most 2 characters
+	jal compute_string_length
+	beq $v0, $0, raise_invalid_input		# Invalid input if $v0 == $0
+	# Check if input is a digit-string
+	jal contains_only_digits
+	beq $v0, $0, raise_invalid_input		# Invalid input if $v0 == $0
+	# Convert month from char into int
+	li $a3, 10
+	jal atoi
+	# Store day (int type) into stack
+	sw $v0, 12($sp)		
 
-						# Get month
-						li $v0, 4
-						la $a0, input_month
-						syscall
+	# Get month
+	li $v0, 4
+	la $a0, input_month
+	syscall
 					
-						li $v0, 8		
-						lw $a0, 8($sp)	
-						li $a1, 1024		
-						syscall
+	li $v0, 8		
+	lw $a0, 8($sp)	
+	li $a1, 1024		
+	syscall
 
-						li $a3, 2		
-						jal compute_string_length
-						beq $v0, $0, raise_invalid_input
-						jal contains_only_digits
-						beq $v0, $0, raise_invalid_input
-						# Convert month from char into int and store into stack
-						li $a3, 10
-						jal atoi
+	li $a3, 2		
+	jal compute_string_length
+	beq $v0, $0, raise_invalid_input
+	jal contains_only_digits
+	beq $v0, $0, raise_invalid_input
+	# Convert month from char into int and store into stack
+	li $a3, 10
+	jal atoi
 						
-						sw $v0, 16($sp)	
+	sw $v0, 16($sp)	
 
-						# Get year
-						li $v0, 4
-						la $a0, input_year
-						syscall
+	# Get year
+	li $v0, 4
+	la $a0, input_year
+	syscall
 					
-						li $v0, 8		
-						lw $a0, 8($sp)	
-						li $a1, 1024		
-						syscall
+	li $v0, 8		
+	lw $a0, 8($sp)	
+	li $a1, 1024		
+	syscall
 
-						jal contains_only_digits
-						beq $v0, $0, raise_invalid_input
-						# Convert and store for year
-						li $a3, 10
-						jal atoi
+	jal contains_only_digits
+	beq $v0, $0, raise_invalid_input
+	# Convert and store for year
+	li $a3, 10
+	jal atoi
 						
-						sw $v0, 20($sp)	
+	sw $v0, 20($sp)	
 
-						# Load back day, month, year and TIME pointer
-						lw $a0, 4($sp)
-						lw $a1, 12($sp)
-						lw $a2, 16($sp)
-						lw $a3, 20($sp)
-						jal Date
+	# Load back day, month, year and TIME pointer
+	lw $a0, 4($sp)
+	lw $a1, 12($sp)
+	lw $a2, 16($sp)
+	lw $a3, 20($sp)
+	jal Date
 
-						j get_time_from_keyboard_exit
+	j get_time_from_keyboard_exit
 
 get_time_from_keyboard_exit:
-							lw $ra, 0($sp)
-							lw $a0, 4($sp)	
-							lw $a1, 8($sp)
-							lw $v0, 24($sp)
-							lw $a3, 28($sp)
-							
-							addi $sp, $sp, 32
+	lw $ra, 0($sp)
+	lw $a0, 4($sp)	
+	lw $a1, 8($sp)
+	lw $v0, 24($sp)
+	lw $a3, 28($sp)
+	addi $sp, $sp, 32
+	jr $ra
 
-							jr $ra
 
 # Compute length of input string and raise error if the number of elements exceed a given value
 # Arguments:	$a0: input from keyboard
 #				$a3: maximum number of characters
 # Return: $v0
 compute_string_length:
-						addi $sp, $sp, -20
-						sw $ra, 0($sp)
-						sw $t0, 4($sp)
-						sw $t3, 8($sp)
-						sw $t1, 12($sp)
-						sw $t2, 16($sp)
+	addi $sp, $sp, -20
+	sw $ra, 0($sp)
+	sw $t0, 4($sp)
+	sw $t3, 8($sp)
+	sw $t1, 12($sp)
+	sw $t2, 16($sp)
+	add $t0, $0, $a0		# $t0 points to $a0 containing input string
+	add $t3, $zero, $a3
+	li $t1, 0		# $t1 works as sum variable and initially, sum = 0
+	li $v0, $0		# initially, $v0 is 0 -> invalid
+	compute_string_length_loop:
+		# Ref: http://davidlovesprogramming.blogspot.com/2013/01/the-following-post-is-bit-more-complex.html
+		lb $t2, 0($t0)		# Load the first byte from the string that $t0 refers to
+		beq $t2, 10, is_input_len_valid		# '\n' is 10
+		addi $t1, $t1, 1
+		addi $t0, $t0, 1
+		j compute_string_length_loop
+	is_input_len_valid:
+		bgt $t1, $t3, compute_string_length_exit	# If sum > $a2
+		beq $t1, $0, compute_string_length_exit
+		li $v0, 1
+	compute_string_length_exit:
+		lw $ra, 0($sp)
+		lw $t0, 4($sp)
+		lw $t3, 8($sp)
+		lw $t1, 12($sp)
+		lw $t2, 16($sp)
+		addi $sp, $sp, 20
+		jr $ra 				# Go back and execute jal contains_only_digits	
 
-						add $t0, $0, $a0		# $t0 points to $a0 containing input string
-						add $t3, $zero, $a3
-						li $t1, 0		# $t1 works as sum variable and initially, sum = 0
-						li $v0, $0		# initially, $v0 is 0 -> invalid
-compute_string_length_loop:
-						# Ref: http://davidlovesprogramming.blogspot.com/2013/01/the-following-post-is-bit-more-complex.html
-						lb $t2, 0($t0)		# Load the first byte from the string that $t0 refers to
 
-						beq $t2, 10, is_input_len_valid		# '\n' is 10
-						
-						addi $t1, $t1, 1
-						addi $t0, $t0, 1
-
-						j compute_string_length_loop
-is_input_len_valid:
-					bgt $t1, $t3, compute_string_length_exit	# If sum > $a2
-					beq $t1, $0, compute_string_length_exit
-
-					li $v0, 1
-
-compute_string_length_exit:
-
-					lw $ra, 0($sp)
-					lw $t0, 4($sp)
-					lw $t3, 8($sp)
-					lw $t1, 12($sp)
-					lw $t2, 16($sp)
-					addi $sp, $sp, 20
-
-					jr $ra 				# Go back and execute jal contains_only_digits	
 
 # Check if input contains only digit
 # Argument:		$a0: input in char*
