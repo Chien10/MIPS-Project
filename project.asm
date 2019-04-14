@@ -1,12 +1,38 @@
 				.data
 
+choice: 		.word		0
+
+can1:			.asciiz		"Giap" 
+can2:			.asciiz		" At "
+can3:			.asciiz		"Binh" 
+can4:			.asciiz		"Dinh"
+can5:			.asciiz		"Mau "
+can6:			.asciiz		" Ky "
+can7:			.asciiz		"Canh"
+can8:			.asciiz		"Tan "
+can9:			.asciiz		"Nham"
+can10:			.asciiz		"Quy "
+can:			.word		can1, can2, can3, can4, can5, can6, can7, can8, can9, can10
+
+chi1:			.asciiz		" Ty "
+chi2:			.asciiz		" Suu"
+chi3:			.asciiz		" Dan"
+chi4:			.asciiz		" Meo"
+chi5:			.asciiz		"Thin"
+chi6:			.asciiz		" Ty "
+chi7:			.asciiz		" Ngo"
+chi8:			.asciiz		" Mao"
+chi9:			.asciiz		"Than"
+chi10:			.asciiz		" Dau"
+chi11:			.asciiz		"Tuat"
+chi12:			.asciiz		" Hoi"
+chi:			.word		chi1, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, chi10, chi11, chi12
+
 TIME:			.space		1024	# Maximum is 10, but there'll be some error if I just use 10!
 TIME_1:			.space 		1024
 TIME_2:			.space		1024
 TEMP:			.space		1024
-
-choice: 		.word		0
-
+can_chi:		.space 		1024
 new_line:		.asciiz		"\n"
 
 input_day: 		.asciiz		"Nhap ngay DAY: "
@@ -40,32 +66,6 @@ fifth_choice:	.asciiz		"5. Cho biet ngay vua nhap la ngay thu may ke tu ngay 1/1
 sub_fifth_choice:			.asciiz		"Ngay vua nhap la ngay thu "
 
 sixth_choice:	.asciiz		"6. Cho biet can chi cua nam vua nhap.\n"
-can1:			.asciiz		"Giap" 
-can2:			.asciiz		" At "
-can3:			.asciiz		"Binh" 
-can4:			.asciiz		"Dinh"
-can5:			.asciiz		"Mau "
-can6:			.asciiz		" Ky "
-can7:			.asciiz		"Canh"
-can8:			.asciiz		"Tan "
-can9:			.asciiz		"Nham"
-can10:			.asciiz		"Quy "
-can:			.word		can1, can2, can3, can4, can5, can6, can7, can8, can9, can10
-
-chi1:			.asciiz		" Ty "
-chi2:			.asciiz		" Suu"
-chi3:			.asciiz		" Dan"
-chi4:			.asciiz		" Meo"
-chi5:			.asciiz		"Thin"
-chi6:			.asciiz		" Ty "
-chi7:			.asciiz		" Ngo"
-chi8:			.asciiz		" Mao"
-chi9:			.asciiz		"Than"
-chi10:			.asciiz		" Dau"
-chi11:			.asciiz		"Tuat"
-chi12:			.asciiz		" Hoi"
-chi:			.word		chi1, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, chi10, chi11, chi12
-can_chi:		.space 		1024
 
 seventh_choice:	.asciiz		"7. Cho biet khoang thoi gian giua chuoi TIME_1 va TIME_2.\n"
 sub_seventh_choice:			.asciiz		"Khoang thoi gian giua hai chuoi la: "
@@ -85,6 +85,9 @@ hooray:			.asciiz		"\nHoorayyy!\n"
 
 				.text
 main:			
+		jal get_input
+		jal print_tasks
+		jal get_choice
 
 get_input:
 			addi $sp, $sp, -12
@@ -97,7 +100,7 @@ get_input:
 			
 			jal get_time_from_keyboard
 
-			sw $a0, TIME 		# Store result back to TIME
+			sw $a0, TIME
 
 			lw $ra, 0($sp)
 			lw $a0, 4($sp)
@@ -176,21 +179,23 @@ get_choice:
 			li $v0, 4
 			la $a0, input_choice
 			syscall
-
+			
 			# Get choice in int type
 			li $v0, 5
 			syscall
 			sw $v0, choice
 			
-			la $a0, TIME 			# Argument for all of the 9 functions
-			la $a2, can
-			la $a1, chi
+			lw $t2, choice
+			la $a0, TIME
+			lw $a2, can
+			lw $a1, chi
+
 			# Switch case structure
 			# Ref: References/Kien_truc_bo_lenh_MIPS.pdf
 
 			# $t1 and $t2 are Switch case registers.
 			addi $t1, $0, 1
-			bne choice, $t1, execute_task_second
+			bne $t2, $t1, execute_task_second
 
 # Argument: $a0: char* TIME
 execute_task_first:
@@ -200,41 +205,41 @@ execute_task_first:
 					j exit
 # Argument
 execute_task_second:
-					addi $t2, $t0, -2
-					bne $t2, $zero, execute_task_third
+					addi $t3, $t2, -2
+					bne $t3, $zero, execute_task_third
 
 					# Do something #
 
 					j exit
 
 execute_task_third:
-					addi $t2, $t0, -3
-					bne $t2, $zero, execute_task_fourth
+					addi $t3, $t2, -3
+					bne $t3, $zero, execute_task_fourth
 
 					j exit
 
 execute_task_fourth:
-					addi $t2, $t0, -4
-					bne $t2, $0, execute_task_fifth
+					addi $t3, $t2, -4
+					bne $t3, $0, execute_task_fifth
 
 					j exit
 
 execute_task_fifth:
-					addi $t2, $t0, -5
-					bne $t2, $0, execute_task_sixth
+					addi $t3, $t2, -5
+					bne $t3, $0, execute_task_sixth
 
 					j exit
 # Arguments: $a0: char* TIME
 #			 $a2: can array
 #            $a1: chi array
 execute_task_sixth:
-					addi $t2, $t0, -6
-					bne $t2, $zero, execute_task_seventh
+					addi $t3, $t2, -6
+					bne $t3, $0, execute_task_seventh
 
 					# 6th choice #
 					jal Year
 					move $s0, $v0		# Store result into $s0
-					
+
 					# Determine can
 					li $s6, 6
 					add $s7, $s0, $s6
@@ -247,7 +252,7 @@ execute_task_sixth:
 					mflo $s7
 
 					add $a2, $a2, $s7
-					
+
 					# Determine chi
 					li $s6, 8
 					add $s7, $s0, $s6
@@ -261,26 +266,29 @@ execute_task_sixth:
 
 					add $a1, $a1, $s7					
 
-					lw $a0, can_chi
+					la $a0, can_chi
 					jal standardize_can_chi_string
+
+					li $v0, 4
+					syscall
 
 					j exit
 
 execute_task_seventh:
-					addi $t2, $t0, -7
-					bne $t2, $0, execute_task_eighth
+					addi $t3, $t2, -7
+					bne $t3, $0, execute_task_eighth
 
 					j exit
 
 execute_task_eighth:
-					addi $t2, $t0, -8
-					bne $t2, $0, execute_task_ninth
+					addi $t3, $t2, -8
+					bne $t3, $0, execute_task_ninth
 
 					j exit
 
 execute_task_ninth:
-					addi $t2, $t0, -9
-					bne $t2, $zero, raise_invalid_choice
+					addi $t3, $t2, -9
+					bne $t3, $zero, raise_invalid_choice
 
 raise_invalid_choice:
 					li $v0, 4
@@ -296,7 +304,7 @@ raise_invalid_input:
 
 					j get_input			# Ask for input, again!
 # Arguments:
-# 			$a0: char* TIME
+# 			$a0: .space TIME
 #			$a1: .space TEMP to strore day, month, year transiently
 # Return value:	$a0 points to TIME(char*)
 get_time_from_keyboard:
@@ -327,7 +335,6 @@ get_time_from_keyboard:
 						jal contains_only_digits
 						beq $v0, $0, raise_invalid_input		# Invalid input if $v0 == $0
 						# Convert month from char into int
-						li $a3, 10
 						jal atoi
 						# Store day (int type) into stack
 						sw $v0, 12($sp)		
@@ -348,7 +355,6 @@ get_time_from_keyboard:
 						jal contains_only_digits
 						beq $v0, $0, raise_invalid_input
 						# Convert month from char into int and store into stack
-						li $a3, 10
 						jal atoi
 						
 						sw $v0, 16($sp)	
@@ -366,7 +372,6 @@ get_time_from_keyboard:
 						jal contains_only_digits
 						beq $v0, $0, raise_invalid_input
 						# Convert and store for year
-						li $a3, 10
 						jal atoi
 						
 						sw $v0, 20($sp)	
@@ -377,12 +382,11 @@ get_time_from_keyboard:
 						lw $a2, 16($sp)
 						lw $a3, 20($sp)
 						jal Date
-
+						
 						j get_time_from_keyboard_exit
 
 get_time_from_keyboard_exit:
 							lw $ra, 0($sp)
-							lw $a0, 4($sp)	
 							lw $a1, 8($sp)
 							lw $v0, 24($sp)
 							lw $a3, 28($sp)
@@ -406,13 +410,13 @@ compute_string_length:
 						add $t0, $0, $a0		# $t0 points to $a0 containing input string
 						add $t3, $zero, $a3
 						li $t1, 0		# $t1 works as sum variable and initially, sum = 0
-						li $v0, $0		# initially, $v0 is 0 -> invalid
+						li $v0, 0		# initially, $v0 is 0 -> invalid
 compute_string_length_loop:
 						# Ref: http://davidlovesprogramming.blogspot.com/2013/01/the-following-post-is-bit-more-complex.html
 						lb $t2, 0($t0)		# Load the first byte from the string that $t0 refers to
 
 						beq $t2, 10, is_input_len_valid		# '\n' is 10
-						
+
 						addi $t1, $t1, 1
 						addi $t0, $t0, 1
 
@@ -444,7 +448,7 @@ contains_only_digits:
 						sw $t2, 8($sp)
 
 						add $t0, $0, $a0		# $t0 points to $a0 contaning input string
-						li $v0, $0
+						li $v0, 0
 contains_only_digits_loop:
 						# Ref: http://www.cim.mcgill.ca/~langer/273/10-notes.pdf
 						lb $t2, 0($t0)	
@@ -470,17 +474,16 @@ contains_only_digits_exit:
 #INPUT: $a0: save address of string
 #OUTPUT: $v0: save value into int
 atoi:
-	li $v0, 0
-atoi_loop:
-	#Backup
 	addi $sp, $sp, -12
 	sw $ra, ($sp)
 	sw $a0, 4($sp)
 	sw $t0, 8($sp)
-	
+
+	li $v0, 0
+atoi_loop:
 	lb $t0, ($a0)
-	beq $t0, '\n', atoi_finish
-	beq $t0, '\0', atoi_finish
+	beq $t0, 10, atoi_finish
+	beq $t0, 0, atoi_finish
 		
 	mul $v0, $v0, 10
 	addi $t0, $t0, -48	
@@ -702,49 +705,49 @@ standardize_can_chi_string:
 							sw $ra, 0($sp)
 							sw $s1, 4($sp)
 							sw $a0, 8($sp)
-
-							la $a0, can_chi
 find_the_first_char_of_can:	
 					lb $s1, 0($a2)
 
-					bne $s1, ' ', put_can_into_output
+					bne $s1, 32, put_can_into_output
 
 					addi $a2, $a2, 1
 
 					j find_the_first_char_of_can
 put_can_into_output:
-					# Load character into can_chi
-					sb $a2, 0($a0)
+					# Store character into can_chi
+					lb $s1, 0($a2)
+					beq $s1, $0, put_space_into_output
 
-					beq $a2, $0, put_space_into_output
+					sb $s1, 0($a0)
 
 					addi $a2, $a2, 1
 					addi $a0, $a0, 1
 
 					j put_can_into_output
 put_space_into_output:
-						addi $a0, $a0, 1
 						li $s1, 32			# 32 is ' ' in ASCII
-						sb $s1, $a0
-						addi $a0, $a0, 1
+						sb $s1, 0($a0)
 find_the_first_char_of_chi:
 					lb $s1, 0($a1)
 
-					bne $s1, ' ', put_chi_into_output
+					bne $s1, 32, put_chi_into_output
 
 					addi $a1, $a1, 1
 
 					j find_the_first_char_of_chi
 put_chi_into_output:
-					sb $a1, 0($a0)
+					lb $s1, 0($a1)
+					beq $s1, $0, standardize_can_chi_string_exit
 
-					beq $a1, $0, standardize_can_chi_string_exit
+					sb $s1, 0($a0)
 
 					addi $a1, $a1, 1
 					addi $a0, $a0, 1
 
 					j put_chi_into_output
 standardize_can_chi_string_exit:
+					sb $0, 0($a0)
+
 					lw $ra, 0($sp)
 					lw $s1, 4($sp)
 					lw $a0, 8($sp)
