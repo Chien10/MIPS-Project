@@ -714,9 +714,11 @@ DinhDangNam1:
 DinhDangNam2:
 	li $t3, 1
 	sub $t2,$t2,$t3 #nam--
-	li $t1,14	
+	li $t1,14
+	j XacDinhThu	
 XacDinhThu:
 	move $s0,$t0               # s0=day
+	move $s1,$t1
 	li,$t3,2
 	sub $t1,$t1,$t3            # m=m-2
 	l.s $f0,const1             # f0=2.6
@@ -727,6 +729,13 @@ XacDinhThu:
 	sub.s $f2,$f2,$f1          # 2.6*m-0.2
 	cvt.w.s $f3,$f2            # float ->int
 	mfc1 $t1,$f3               # t1=2.6*m-0.2 int
+	li $t3, 14
+	beq $t3,$s1, DinhDangThang2
+	j XacDinhThu_continue
+DinhDangThang2:
+	addi $t1,$t1,1
+	j XacDinhThu_continue
+XacDinhThu_continue:
 	add $s0,$s0, $t1           # s0=(2.6*m-0.2)+d
 	
 	li $t3, 100
