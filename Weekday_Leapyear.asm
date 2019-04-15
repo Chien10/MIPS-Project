@@ -768,10 +768,10 @@ XacDinhThu_continue:
 	li $s1,0
 FOR:
 	slt $t3,$s0,$s1
-	beq $t3,$0, Stop
+	beq $t3,$0, XacDinhThu_continue_2
 	addi $s0,$s0,7
 	j FOR
-Stop:	
+XacDinhThu_continue_2:	
 	
 	li $t3,7
 	div $s0,$t3
