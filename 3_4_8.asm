@@ -99,6 +99,7 @@ get_input:
 			la $a1, TEMP 		# To store day, month and year before combining them into TIME
 			
 			jal get_time_from_keyboard
+			
 
 			sw $a0, TIME
 
@@ -108,8 +109,8 @@ get_input:
 			addi $sp, $sp, 12
 			
 			
-			#move $s3,$v1
-			#beq $s3,$0, raise_invalid_input
+			move $s3,$v1
+			beq $s3,$0, raise_invalid_input
 
 			jr $ra
 
@@ -220,7 +221,8 @@ execute_task_third:
 					addi $t3, $t2, -3
 					bne $t3, $zero, execute_task_fourth
 					#move $a0,$a3  #TIME
-	
+					
+					
 					jal CheckLeapYear
 					li $t0,1
 					beq $t0,$v1, Leap  #  t0=v1->Leap
@@ -250,6 +252,7 @@ Leap:
 execute_task_fourth:
 					addi $t3, $t2, -4
 					bne $t3, $0, execute_task_fifth
+					
 					
 					jal Weekday
 					move $a0, $v0
@@ -361,7 +364,7 @@ LeapNext:
 					move $t1,$a0    # t1=a0
 	
 					li $v0,4
-					la $a0, sub_eighth_choice3  # output "v¿†"
+					la $a0, sub_eighth_choice3  # output "v "
 					syscall
 	
 					addi $a0, $t1, 8 # year+4
@@ -396,7 +399,7 @@ NotLeapNext:
 					move $t1,$a0    # t1=a0
 	
 					li $v0,4
-					la $a0, sub_eighth_choice3  # output "v¿†"
+					la $a0, sub_eighth_choice3  # output "v "
 					syscall
 	
 					addi $a0, $t1,4 # year+4
@@ -502,6 +505,7 @@ get_time_from_keyboard:
 						lw $a3, 20($sp)
 						jal Date
 						
+						jal CheckDay
 						
 						j get_time_from_keyboard_exit
 
