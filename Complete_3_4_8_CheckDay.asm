@@ -87,6 +87,8 @@ hooray:			.asciiz		"\nHoorayyy!\n"
 				.text
 main:			
 		jal get_input
+		move $a3,$v1
+		beq $v1,$0,output_invalid_input     # checkday
 		jal print_tasks
 		jal get_choice
 get_input:
@@ -105,8 +107,7 @@ get_input:
 			lw $a1, 8($sp)
 			addi $sp, $sp, 12
 
-			move $a3,$v1
-			beq $v1,$0,raise_invalid_input
+
 			jr $ra
 
 			# check if input is valid #
@@ -423,6 +424,11 @@ raise_invalid_input:
 					syscall
 
 					j get_input			# Ask for input, again!
+output_invalid_input:   #checkday
+					li $v0,4
+					la $a0,	invalid_input  # output 
+					syscall
+					j exit	
 # Arguments:
 # 			$a0: .space TIME
 #			$a1: .space TEMP to strore day, month, year transiently
