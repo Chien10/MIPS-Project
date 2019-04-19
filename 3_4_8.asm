@@ -50,8 +50,8 @@ sec_choice_b:	.asciiz		"			B. Month DD, YYYY\n"
 sec_choice_c:	.asciiz		"			C. DD Month, YYYY\n"
 
 third_choice:	.asciiz		"3. Kiem tra nam trong chuoi TIME co phai la nam nhuan khong.\n"
-output_leap_yr:	.asciiz		"Nam nhap vao la nam nhuan.\n"
-output_n_lp_yr:	.asciiz		"Nam nhap vao khong phai la nam nhuan.\n"
+output_leap_yr:	.asciiz		" LA NAM NHUAN.\n"
+output_n_lp_yr:	.asciiz		" LA NAM THUONG.\n"
 
 fourth_choice: .asciiz		"4. Cho biet ngay vua nhap la ngay thu may trong tuan.\n"
 monday:						.asciiz		"Mon.\n"
@@ -72,8 +72,9 @@ seventh_choice:	.asciiz		"7. Cho biet khoang thoi gian giua chuoi TIME_1 va TIME
 sub_seventh_choice:			.asciiz		"Khoang thoi gian giua hai chuoi la: "
 
 eighth_choice:	.asciiz		"8. Cho biet 2 nam nhuan gan nhat voi nam trong chuoi TIME.\n"
-sub_eighth_choice1:			.asciiz		"Hai nam nhuan gan nhat la "
-sub_eighth_choice2:			.asciiz		" va "
+sub_eighth_choice1:			.asciiz		"Hai nam nhuan gan voi "
+sub_eighth_choice2:                     .asciiz         " nhat la "
+sub_eighth_choice3:			.asciiz		" va "
 
 ninth_choice:	.asciiz		"9. Nhap input tu file input.txt xuat ket qua toan bo cac chuc nang tren ra file output.txt.\n"
 
@@ -227,11 +228,22 @@ execute_task_third:
 					beq $t0,$v1, Leap  #  t0=v1->Leap
 	
 	 				#  t0!=v1->output
-					li $v0,4          
+	 				
+	 				addi $a0,$a0,0  # ouput nam
+	 				li $v0,1
+	 				syscall
+	 				
+	 				
+					li $v0,4         # output  
 					la $a0, output_n_lp_yr
 					syscall
 					j exit
 Leap:
+					addi $a0,$a0,0  # ouput nam
+	 				li $v0,1
+	 				syscall
+	 				
+	 				
 					li, $v0,4
 					la,$a0, output_leap_yr
 					syscall
@@ -313,7 +325,7 @@ execute_task_eighth:
 					#move $a0,$a3 #TIME
 	
 					jal CheckLeapYear
-	
+					
 					li $t1,1
 					beq $v1,$t1, LeapNext   #t0=0 notleap
 					
@@ -325,18 +337,27 @@ execute_task_eighth:
 					sub $a0,$a0,$v1 
 					# 2017 mod 4=1
 					# 2017-1=2016 is leapyear
-					j LeapNext
+					j NotLeapNext
 
 LeapNext:
 					move $t1, $a0  # t0=nam(t0=2016)
 	
-					#output "Hai nam nhuan gan nhat la "
+					#output "Hai nam nhuan gan voi "
 					li $v0,4
 					la $a0, sub_eighth_choice1  
 					syscall
-	
-	
-					addi $a0,$t1,4  # year+4
+					
+					
+					addi $a0,$t1,0
+					li $v0,1  
+					syscall
+					
+					li $v0,4
+					la $a0, sub_eighth_choice2  
+					syscall
+					
+					li $v1,4
+					sub $a0,$t1,4 # year-4
 					li $v0,1
 					syscall
 	
@@ -344,7 +365,42 @@ LeapNext:
 					move $t1,$a0    # t1=a0
 	
 					li $v0,4
-					la $a0, sub_eighth_choice2  # output "v√†"
+					la $a0, sub_eighth_choice3  # output "v¿†"
+					syscall
+	
+					addi $a0, $t1, 8 # year+4
+					li $v0,1
+					syscall
+	
+					j exit
+
+NotLeapNext:
+					move $t1, $a0  # t1=nam(t0=2016)
+					#output "Hai nam nhuan gan "
+					li $v0,4
+					la $a0, sub_eighth_choice1  
+					syscall
+					
+					add $a0,$t1,$v1
+					li $v0,1  
+					syscall
+					
+					move $a0,$t1
+					
+					li $v0,4
+					la $a0, sub_eighth_choice2  
+					syscall
+					
+					
+					addi $a0,$t1,0  # year
+					li $v0,1
+					syscall
+	
+	
+					move $t1,$a0    # t1=a0
+	
+					li $v0,4
+					la $a0, sub_eighth_choice3  # output "v¿†"
 					syscall
 	
 					addi $a0, $t1,4 # year+4
