@@ -86,8 +86,9 @@ hooray:			.asciiz		"\nHoorayyy!\n"
 				.text
 main:			
 		jal get_input
-		jal print_tasks
-		jal get_choice
+		la $a0, TIME
+		
+		j exit
 
 get_input:
 			addi $sp, $sp, -12
@@ -99,8 +100,6 @@ get_input:
 			la $a1, TEMP 		# To store day, month and year before combining them into TIME
 			
 			jal get_time_from_keyboard
-
-			sw $a0, TIME
 
 			lw $ra, 0($sp)
 			lw $a0, 4($sp)
@@ -382,7 +381,7 @@ get_time_from_keyboard:
 						lw $a2, 16($sp)
 						lw $a3, 20($sp)
 						jal Date
-						
+
 						j get_time_from_keyboard_exit
 
 get_time_from_keyboard_exit:
