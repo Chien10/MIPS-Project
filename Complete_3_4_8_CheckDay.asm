@@ -54,15 +54,14 @@ output_leap_yr:	.asciiz		" LA NAM NHUAN.\n"
 output_n_lp_yr:	.asciiz		" LA NAM THUONG.\n"
 
 fourth_choice: .asciiz		"4. Cho biet ngay vua nhap la ngay thu may trong tuan.\n"
-monday:						.asciiz		"Mon.\n"
-tuesday:					.asciiz		"Tues.\n"
-wednesday:					.asciiz		"Wed.\n"
-thursday:					.asciiz		"Thurs.\n"
-friday:						.asciiz		"Fri.\n"
-saturday:					.asciiz		"Sat.\n"
-sunday:						.asciiz		"Sun.\n"
-const1: 					.float 2.6
-const2: 					.float 0.2
+monday:						.asciiz		" la thu hai\n"
+tuesday:					.asciiz		" la thu ba\n"
+wednesday:					.asciiz		" la thu tu\n"
+thursday:					.asciiz		" la thu nam\n"
+friday:						.asciiz		" la thu sau\n"
+saturday:					.asciiz		" la thu bay\n"
+sunday:						.asciiz		" la chu nhat\n"
+
 fifth_choice:	.asciiz		"5. Cho biet ngay vua nhap la ngay thu may ke tu ngay 1/1/1.\n"
 sub_fifth_choice:			.asciiz		"Ngay vua nhap la ngay thu "
 
@@ -73,7 +72,7 @@ sub_seventh_choice:			.asciiz		"Khoang thoi gian giua hai chuoi la: "
 
 eighth_choice:	.asciiz		"8. Cho biet 2 nam nhuan gan nhat voi nam trong chuoi TIME.\n"
 sub_eighth_choice1:			.asciiz		"Hai nam nhuan gan voi "
-sub_eighth_choice2:         .asciiz     " nhat la "
+sub_eighth_choice2:                     .asciiz         " nhat la "
 sub_eighth_choice3:			.asciiz		" va "
 
 ninth_choice:	.asciiz		"9. Nhap input tu file input.txt xuat ket qua toan bo cac chuc nang tren ra file output.txt.\n"
@@ -90,7 +89,6 @@ main:
 		jal get_input
 		jal print_tasks
 		jal get_choice
-
 get_input:
 			addi $sp, $sp, -12
 			sw $ra, 0($sp)
@@ -102,17 +100,13 @@ get_input:
 			
 			jal get_time_from_keyboard
 
-			sw $a0, TIME
-
 			lw $ra, 0($sp)
 			lw $a0, 4($sp)
 			lw $a1, 8($sp)
 			addi $sp, $sp, 12
-			
-			
-			move $s3,$v1
-			beq $s3,$0, raise_invalid_input
 
+			move $a3,$v1
+			beq $v1,$0,raise_invalid_input
 			jr $ra
 
 			# check if input is valid #
@@ -221,9 +215,9 @@ execute_task_second:
 execute_task_third:
 					addi $t3, $t2, -3
 					bne $t3, $zero, execute_task_fourth
-					#move $a0,$a3  #TIME
-	
+					
 					jal CheckLeapYear
+					
 					li $t0,1
 					beq $t0,$v1, Leap  #  t0=v1->Leap
 	
@@ -247,18 +241,22 @@ Leap:
 					li, $v0,4
 					la,$a0, output_leap_yr
 					syscall
+					
+					
 					j exit
-										
+									
 execute_task_fourth:
 					addi $t3, $t2, -4
 					bne $t3, $0, execute_task_fifth
 					
-					move $a0,$a3 #TIME
+					li $v0, 4 # output dd/mm/yyyy
+					syscall
 					
 					jal Weekday
 					move $a0, $v0
 					li $v0, 4
 					syscall
+					
 					j exit
 
 execute_task_fifth:
@@ -320,8 +318,6 @@ execute_task_seventh:
 execute_task_eighth:
 					addi $t3, $t2, -8
 					bne $t3, $0, execute_task_ninth
-					
-					
 					#move $a0,$a3 #TIME
 	
 					jal CheckLeapYear
@@ -406,6 +402,7 @@ NotLeapNext:
 					addi $a0, $t1,4 # year+4
 					li $v0,1
 					syscall
+	
 	
 					j exit
 
@@ -785,7 +782,7 @@ Month_finish:
 			jr $ra
 
 # Argument: $a0: char* TIME
-# Return: $v0
+# Return: $v1
 Year:
 	addi $sp, $sp, -20
 	sw $ra, 0($sp)
@@ -886,7 +883,7 @@ exit:
 
 	li $v0, 10
 	syscall
-
+	
 LeapYear: 
 	li $t1, 400        # t1=400
 	div $a0, $t1       # year/400
@@ -934,21 +931,23 @@ CheckLeapYear:
 Weekday:
 	#input  TIME
 	#output $v0
-	addi $sp,$sp,-16 
+	addi $sp,$sp,-16
 	sw $ra, 12($sp)
 	sw $t2, 8($sp)
 	sw $t1, 4($sp)
 	sw $t0, 0($sp) 
 	
+	
 	jal Year
 	move $t2, $v0    #t2=year
-
-	jal Month
-	move $t1, $v0    #t1=month
 	
 	jal Day
 	move $t0, $v0    #t0=day
 	
+	jal Month
+	move $t1, $v0    #t1=month
+	
+
 	li $t3, 1
 	beq $t3,$t1, DinhDangNam1
 	li $t3,2
@@ -965,32 +964,25 @@ DinhDangNam2:
 	li $t1,14
 	j XacDinhThu	
 XacDinhThu:
-	move $s0,$t0
-	move $s1,$t1
-	li,$t3,2
-	sub $t1,$t1,$t3            # m=m-2
-	l.s $f0,const1             # f0=2.6
-	l.s $f1,const2             # f1=0.2
-	mtc1 $t1,$f2               # f2=t1
-	cvt.s.w $f3,$f2            # int->float
-	mul.s $f2,$f3,$f0          # 2.6*m
-	sub.s $f2,$f2,$f1          # 2.6*m-0.2
-	cvt.w.s $f3,$f2            # float ->int
-	mfc1 $t1,$f3               # t1=2.6*m-0.2 int
-	li $t3, 14
-	beq $t3,$s1, DinhDangThang2
-	j XacDinhThu_continue
-DinhDangThang2:
-	addi $t1,$t1,1
-	j XacDinhThu_continue
-XacDinhThu_continue:
-	add $s0,$s0, $t1           # s0=(2.6*m-0.2)+d
+	move $s0,$t0               # s0=day
+	
+	li,$t3,1
+	add $t1,$t1,$t3            # m=m+1
+	li $t3,13
+	mult $t1,$t3               # 13*(m+1)
+	mflo $t1                   # t1=13*(m+1)
+	li $t3,5
+	div $t1,$t3                # 13/5*(m+1)
+	mflo $t1                   # t1=13/5*(m+1)
+	
+	
+	add $s0,$s0, $t1           # s0=13/5*(m+1)+d
 	
 	li $t3, 100
 	div $t2,$t3                # nam/100
 	mflo $t0                   # First 2 digits
 	mfhi $t1                   # Last 2 digits
-	add $s0,$s0,$t1            # s0=(2.6*m-0.2)+d+y
+	add $s0,$s0,$t1            # s0=13/5*(m+1)+d+y
 	
 	
 	li $t3, 4
@@ -998,8 +990,8 @@ XacDinhThu_continue:
 	mflo $t1                   # lo
 	div $t0,$t3                # cdiv4
 	mflo $t0                   # lo
-	add $s0,$s0,$t1            # s0=(2.6*m-0.2)+d+ydiv4+y
-	add $s0,$s0,$t0            # s0=(2.6*m-0.2)+d+ydiv4+y+cdiv4
+	add $s0,$s0,$t1            # s0=13/5*(m+1)+d+ydiv4+y
+	add $s0,$s0,$t0            # s0=13/5*(m+1)+d+ydiv4+y+cdiv4
 	
 	
 	
@@ -1009,36 +1001,27 @@ XacDinhThu_continue:
 	li $t3,2
 	mult $t0,$t3               # 2*c
 	mflo $t0
-	sub $s0,$s0,$t0            # s0=(2.6*m-0.2)+d+ydiv4+cdiv4+y-2*c
-	
-	
-	j FOR
-	li $s1,0
-FOR:
-	slt $t3,$s0,$s1
-	beq $t3,$0, XacDinhThu_continue_2
-	addi $s0,$s0,7
-	j FOR
-XacDinhThu_continue_2:	
-	
+	sub $s0,$s0,$t0            # s0=13/5*(m+1)+d+ydiv4+cdiv4+y-2*c
+
+
 	li $t3,7
 	div $s0,$t3
-	mfhi $s0                   # s0=((2.6*m-0.2)+d+ydiv4+cdiv4+y-2*c)mod 7
+	mfhi $s0                   # s0=(13/5*(m+1)+d+ydiv4+cdiv4+y-2*c)mod 7
 	
 	
-	li $t3,0
-	beq $s0,$t3, sun
 	li $t3,1
-	beq $s0,$t3, mon
+	beq $s0,$t3, sun
 	li $t3,2
-	beq $s0,$t3, tue
+	beq $s0,$t3, mon
 	li $t3,3
-	beq $s0,$t3, wed
+	beq $s0,$t3, tue
 	li $t3,4
-	beq $s0,$t3, thurs
+	beq $s0,$t3, wed
 	li $t3,5
-	beq $s0,$t3, fri
+	beq $s0,$t3, thurs
 	li $t3,6
+	beq $s0,$t3, fri
+	li $t3,7
 	beq $s0,$t3, sat
 sun:
 	la $v0, sunday
@@ -1062,13 +1045,12 @@ sat:
 	la $v0, saturday
 	j end
 end:
-	lw $t0, 0($sp) 
-	lw $t1, 4($sp)
+	lw $ra, 12($sp)
 	lw $t2, 8($sp)
-	lw $s0, 12($sp)
-	lw $ra, 16($sp)	
+	lw $t1, 4($sp)
+	lw $t0, 0($sp) 
 	
-	addi $sp,$sp,28
+	addi $sp,$sp,16
 	
 	jr $ra	
 CheckDay:
