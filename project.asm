@@ -66,6 +66,7 @@ fifth_choice:	.asciiz		"5. Cho biet ngay vua nhap la ngay thu may ke tu ngay 1/1
 sub_fifth_choice:			.asciiz		"Ngay vua nhap la ngay thu "
 
 sixth_choice:	.asciiz		"6. Cho biet can chi cua nam vua nhap.\n"
+output_can_chi:				.asciiz		" la nam "
 
 seventh_choice:	.asciiz		"7. Cho biet khoang thoi gian giua chuoi TIME_1 va TIME_2.\n"
 sub_seventh_choice:			.asciiz		"Khoang thoi gian giua hai chuoi la: "
@@ -86,8 +87,7 @@ hooray:			.asciiz		"\nHoorayyy!\n"
 				.text
 main:			
 		jal get_input
-		la $a0, TIME
-		
+	
 		j exit
 
 get_input:
@@ -204,9 +204,7 @@ execute_task_first:
 					j exit
 # Argument
 execute_task_second:
-					addi $t3, $t2, -2
-					bne $t3, $zero, execute_task_third
-
+					
 					# Do something #
 
 					j exit
@@ -235,9 +233,20 @@ execute_task_sixth:
 					addi $t3, $t2, -6
 					bne $t3, $0, execute_task_seventh
 
+					addi $sp, $sp, -20
+					sw $s0, ($sp)
+					sw $a0, 4($sp)
+					sw $v0, 8($sp)
+					sw $s6, 12($sp)
+					sw $s7, 16($sp)
+
 					# 6th choice #
 					jal Year
 					move $s0, $v0		# Store result into $s0
+
+					li $v0, 1
+					move $a0, $s0
+					syscall
 
 					# Determine can
 					li $s6, 6
@@ -267,9 +276,22 @@ execute_task_sixth:
 
 					la $a0, can_chi
 					jal standardize_can_chi_string
+					move $s0, $a0
 
 					li $v0, 4
+					la $a0, output_can_chi
 					syscall
+
+					li $v0, 4
+					move $a0, $s0
+					syscall
+
+					sw $s0, ($sp)
+					sw $a0, 4($sp)
+					sw $v0, 8($sp)
+					sw $s6, 12($sp)
+					sw $s7, 16($sp)
+					addi $sp, $sp, 20
 
 					j exit
 
@@ -335,6 +357,7 @@ get_time_from_keyboard:
 						beq $v0, $0, raise_invalid_input		# Invalid input if $v0 == $0
 						# Convert month from char into int
 						jal atoi
+			
 						# Store day (int type) into stack
 						sw $v0, 12($sp)		
 
@@ -475,26 +498,29 @@ contains_only_digits_exit:
 atoi:
 	addi $sp, $sp, -12
 	sw $ra, ($sp)
-	sw $a0, 4($sp)
+	sw $s0, 4($sp)
 	sw $t0, 8($sp)
 
+	move $s0, $a0
 	li $v0, 0
 atoi_loop:
-	lb $t0, ($a0)
+	lb $t0, ($s0)
 	beq $t0, 10, atoi_finish
 	beq $t0, 0, atoi_finish
+	beq $t0, 47, atoi_finish
 		
 	mul $v0, $v0, 10
 	addi $t0, $t0, -48	
 	add $v0, $v0, $t0
-	addi $a0, $a0, 1
+	addi $s0, $s0, 1
 	j atoi_loop
 atoi_finish:
 	#Restore
 	lw $ra, ($sp)
-	lw $a0, 4($sp)
+	lw $s0, 4($sp)
 	lw $t0, 8($sp)
 	addi $sp, $sp, 12
+
 	jr $ra
 
 # Arguments: 
@@ -518,7 +544,7 @@ Date:
 	addi $s2, $0, 10
 	div $s1, $s2
 	mflo $s1 		# quotient
-	addi $s1, $s1, 48	# Convert into integer: int = char + '0' (48)
+	addi $s1, $s1, 48	# Convert into char: char = int + '0' (48)
 	mfhi $s2 		# remainder
 	addi $s2, $s2, 48
 	
@@ -582,118 +608,45 @@ Date:
 # Argument: $a0 char *TIME
 # Return:	$v0
 Day:
-	addi $sp, $sp, -20
+	addi $sp, $sp, -4
 	sw $ra, 0($sp)
-	sw $s0, 4($sp)
-	sw $s4, 8($sp)
-	sw $s2, 12($sp)
-	sw $s1, 16($sp)
-
-	move $s0, $a0
-	li $v0, 0
-	li $s4, 47
-Day_loop:
-		lb $s1, 0($s0)
-
-		beq $s1, $s4, Day_finish
-
-		addi $s1, $s1, -48
-
-		li $s2, 10
-		mult $v0, $s2
-		mflo $v0
-
-		add $v0, $v0, $s1
-
-		addi $s0, $s0, 1
-
-		j Day_loop
+	
+	jal atoi
 Day_finish:
 			lw $ra, 0($sp)
-			lw $s0, 4($sp)
-			lw $s4, 8($sp)
-			lw $s2, 12($sp)
-			lw $s1, 16($sp)
-			addi $sp, $sp, 20
+			addi $sp, $sp, 4
 
 			jr $ra
 
 # Argument: $a0 char *TIME
 # Return:	$v0
 Month:
-	addi $sp, $sp, -20
+	addi $sp, $sp, -8
 	sw $ra, 0($sp)
-	sw $s0, 4($sp)
-	sw $s4, 8($sp)
-	sw $s2, 12($sp)
-	sw $s1, 16($sp)
+	sw $a0, 4($sp)
 
-	move $s0, $a0
-	addi $s0, $s0, 3
-	li $v0, 0
-	li $s4, 47
-Month_loop:
-		lb $s1, 0($s0)
-
-		beq $s1, $s4, Month_finish
-
-		addi $s1, $s1, -48
-
-		li $s2, 10
-		mult $v0, $s2
-		mflo $v0
-
-		add $v0, $v0, $s1
-
-		addi $s0, $s0, 1
-
-		j Month_loop
+	addi $a0, $a0, 3
+	jal atoi
 Month_finish:
 			lw $ra, 0($sp)
-			lw $s0, 4($sp)
-			lw $s4, 12($sp)
-			lw $s2, 16($sp)
-			lw $s1, 20($sp)
-			addi $sp, $sp, 20
+			lw $a0, 4($sp)
+			addi $sp, $sp, 8
 
 			jr $ra
 
 # Argument: $a0: char* TIME
 # Return: $v1
 Year:
-	addi $sp, $sp, -20
+	addi $sp, $sp, -8
 	sw $ra, 0($sp)
-	sw $s0, 4($sp)
-	sw $s4, 8($sp)
-	sw $s2, 12($sp)
-	sw $s1, 16($sp)
+	sw $a0, 4($sp)
 
-	move $s0, $a0
-	addi $s0, $s0, 6
-	li $v0, 0		# return value
-Year_loop:
-			lb $s1, 0($s0)
-			
-			beq $s1, $0, Year_finish
-
-			addi $s1, $s1, -48
-
-			li $s2, 10
-			mult $v0, $s2
-			mflo $v0
-
-			add $v0, $v0, $s1
-
-			addi $s0, $s0, 1
-
-			j Year_loop
+	addi $a0, $a0, 6
+	jal atoi
 Year_finish:
 			lw $ra, 0($sp)
-			lw $s0, 4($sp)
-			lw $s4, 8($sp)
-			lw $s2, 12($sp)
-			lw $s1, 16($sp)
-			addi $sp, $sp, 20
+			lw $a0, 4($sp)
+			addi $sp, $sp, 8
 
 			jr $ra
 
