@@ -250,6 +250,7 @@ execute_task_fourth:
 					addi $t3, $t2, -4
 					bne $t3, $0, execute_task_fifth
 					
+					la $a0,TIME
 					li $v0, 4 # output dd/mm/yyyy
 					syscall
 					
@@ -935,7 +936,7 @@ CheckLeapYear:
 	
 	
 Weekday:
-	#input  TIME
+	#input $a0 TIME
 	#output $v0
 	addi $sp,$sp,-16
 	sw $ra, 12($sp)
@@ -954,80 +955,58 @@ Weekday:
 	move $t1, $v0    #t1=month
 	
 
-	li $t3, 1
-	beq $t3,$t1, DinhDangNam1
-	li $t3,2
-	beq $t3,$t1, DinhDangNam2
-	j XacDinhThu
-DinhDangNam1:
-	li $t3, 1
-	sub $t2,$t2,$t3 #nam--
-	li $t1,13
-	j XacDinhThu
-DinhDangNam2:
-	li $t3, 1
-	sub $t2,$t2,$t3 #nam--
-	li $t1,14
-	j XacDinhThu	
+	li $t3, 3
+	slt $t3,$t1,$t3          # month<3
+	beq $t3,$0, XacDinhThu   # month>3 ->XacDinhThu
+	addi $t1,$t1,12          # month=month+12  
+	li $t3,1
+	sub $t2,$t2,$t3	         # year=year-1
 XacDinhThu:
 	move $s0,$t0               # s0=day
 	
-	li,$t3,1
-	add $t1,$t1,$t3            # m=m+1
-	li $t3,13
-	mult $t1,$t3               # 13*(m+1)
-	mflo $t1                   # t1=13*(m+1)
+	li,$t3,2
+	mult $t1,$t3               # month*2
+	mflo $t4                   # t4=month*2
+	add $s0,$s0, $t4           # s0= day+month*2
+	addi $t1,$t1,1             # month+1
+	li $t3,3
+	mult $t1,$t3               # 3*(month+1)
+	mflo $t1                   # t1=3*(month+1)
 	li $t3,5
-	div $t1,$t3                # 13/5*(m+1)
-	mflo $t1                   # t1=13/5*(m+1)
+	div $t1,$t3                # 3*(month+1) div 5
+	mflo $t1                   # t1=3*(month+1)div 5
 	
 	
-	add $s0,$s0, $t1           # s0=13/5*(m+1)+d
+	add $s0,$s0, $t1           # s0=day+month+3*(month+1)div 5
 	
-	li $t3, 100
-	div $t2,$t3                # nam/100
-	mflo $t0                   # First 2 digits
-	mfhi $t1                   # Last 2 digits
-	add $s0,$s0,$t1            # s0=13/5*(m+1)+d+y
-	
+	add $s0,$s0,$t2            # s0=day+month+3*(month+1)div 5+ year
 	
 	li $t3, 4
-	div $t1, $t3               # ydiv4
-	mflo $t1                   # lo
-	div $t0,$t3                # cdiv4
-	mflo $t0                   # lo
-	add $s0,$s0,$t1            # s0=13/5*(m+1)+d+ydiv4+y
-	add $s0,$s0,$t0            # s0=13/5*(m+1)+d+ydiv4+y+cdiv4
+	div $t2,$t3                # year div 4
+	mflo $t2                   # t2=year div 4
+	
+	add $s0,$s0,$t2            # s0=day+month+3*(month+1)div 5+ year+ year div 4
+	
+	
+	li $t3, 7
+	div $s0, $t3               # s0 mod 7 
+	mfhi $s0                   # s0=s0/7
 	
 	
 	
-	li $t3, 100
-	div $t2,$t3                # nam/100
-	mflo $t0                   # lo
-	li $t3,2
-	mult $t0,$t3               # 2*c
-	mflo $t0
-	sub $s0,$s0,$t0            # s0=13/5*(m+1)+d+ydiv4+cdiv4+y-2*c
-
-
-	li $t3,7
-	div $s0,$t3
-	mfhi $s0                   # s0=(13/5*(m+1)+d+ydiv4+cdiv4+y-2*c)mod 7
-	
-	
-	li $t3,1
+	li $t3,0
 	beq $s0,$t3, sun
-	li $t3,2
+	li $t3,1
 	beq $s0,$t3, mon
-	li $t3,3
+	li $t3,2
 	beq $s0,$t3, tue
-	li $t3,4
+	li $t3,3
 	beq $s0,$t3, wed
-	li $t3,5
+	li $t3,4
 	beq $s0,$t3, thurs
-	li $t3,6
+	li $t3,5
 	beq $s0,$t3, fri
-	li $t3,7
+	li $t3,6
 	beq $s0,$t3, sat
 sun:
 	la $v0, sunday
@@ -1059,6 +1038,10 @@ end:
 	addi $sp,$sp,16
 	
 	jr $ra	
+	
+	
+	
+	
 CheckDay:
 # output v0
 	addi $sp,$sp,-16
