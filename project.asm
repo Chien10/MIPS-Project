@@ -63,13 +63,20 @@ saturday:					.asciiz		" la thu bay\n"
 sunday:						.asciiz		" la chu nhat\n"
 
 fifth_choice:	.asciiz		"5. Cho biet ngay vua nhap la ngay thu may ke tu ngay 1/1/1.\n"
-sub_fifth_choice:			.asciiz		"Ngay vua nhap la ngay thu "
+output_ques_fifth1: 			.asciiz "Khoang cach tu ngay 01/01/0001 den "
+output_ques_fifth2: 			.asciiz " la "
+output_ques_fifth3: 			.asciiz " ngay "
+
+
 
 sixth_choice:	.asciiz		"6. Cho biet can chi cua nam vua nhap.\n"
 output_can_chi:				.asciiz		" la nam "
 
 seventh_choice:	.asciiz		"7. Cho biet khoang thoi gian giua chuoi TIME_1 va TIME_2.\n"
-sub_seventh_choice:			.asciiz		"Khoang thoi gian giua hai chuoi la: "
+output_ques_seventh1: 			.asciiz "Khoang cach tu ngay "
+output_ques_seventh2: 			.asciiz " den ngay "
+output_ques_seventh3: 			.asciiz " la "
+output_ques_seventh4: 			.asciiz " ngay "
 
 eighth_choice:	.asciiz		"8. Cho biet 2 nam nhuan gan nhat voi nam trong chuoi TIME.\n"
 sub_eighth_choice1:			.asciiz		"Hai nam nhuan gan voi "
@@ -118,17 +125,9 @@ hooray:			.asciiz		"\nHoorayyy!\n"
 	Month_12:	.asciiz	"December"
 	ntf_2:	.asciiz	"Chuyen chuoi thanh 1 trong cac dinh dang sau:\n\tA. MM/DD/YYYY\n\tB. Month DD, YYYY\n\tC. DD Month, YYYY\n"
 
-##############################################################################
-#Dong########################################################################
-output_ques_fifth1: .asciiz "Khoang cach tu ngay 01/01/0001 den "
-output_ques_fifth2: .asciiz " la "
-############################################################################
-
 				.text
 main:			
 		jal get_input
-		move $a3,$v1
-		beq $v1,$0,output_invalid_input     # checkday
 		jal print_tasks
 		jal get_choice
 
@@ -305,33 +304,7 @@ execute_task_fourth:
 execute_task_fifth:
 					addi $t3, $t2, -5
 					bne $t3, $0, execute_task_sixth
-					#backup
-					addi $sp,$sp,-8
-					sw $a0,($sp)
-					sw $t0,4($sp)
-					move $t0,$a0
-					#xuat
-					li $v0,4
-					la $a0,output_ques_fifth1
-					syscall
-					
-					li $v0,4
-					la $a0,($t0)
-					syscall
-					
-					li $v0,4
-					la $a0,output_ques_fifth2
-					syscall
-					
-					lw $a0,($sp)
-					lw $t0,4($sp)
-					addi $sp,$sp,8
-					
-					jal NumberDay
-					move $t1,$v0
-					li $v0,1
-					la $a0,($t1)
-					syscall
+				    jal Output_Fifth
 
 					j exit
 # Arguments: $a0: char* TIME
@@ -406,12 +379,8 @@ execute_task_sixth:
 execute_task_seventh:
 					addi $t3, $t2, -7
 					bne $t3, $0, execute_task_eighth
-					jal GetTime
-					move $t0,$v0
-					li $v0,1
-					la $a0,($t0)
-					syscall
-
+					jal Output_Seventh
+					
 					j exit
 
 execute_task_eighth:
@@ -616,7 +585,9 @@ get_time_from_keyboard:
 						jal Date
 						
 						jal CheckDay
-
+						move $a3,$v1
+						beq $v1,$0, raise_invalid_input     # checkday 
+						
 						j get_time_from_keyboard_exit
 
 get_time_from_keyboard_exit:
@@ -1197,8 +1168,8 @@ fill_blank_string:
 	#Loop fill '\0'
 	fill_blank_string.loop:
 	lb $t0, ($a0)
-	beq $t0, 10, fill_blank_string.exit
-	beq $t0, $0, fill_blank_string.exit
+	beq $t0, '\n', fill_blank_string.exit
+	beq $t0, '\0', fill_blank_string.exit
 	li $t0, 0
 	sb $t0, ($a0)
 	addi $a0, $a0, 1
@@ -1228,8 +1199,8 @@ atoi_D:
 atoi_loop_D:
 	
 	lb $t0, ($a0)
-	beq $t0, 10, atoi_finish
-	beq $t0, $0, atoi_finish
+	beq $t0, '\n', atoi_finish_D
+	beq $t0, '\0', atoi_finish_D
 		
 	mul $v0, $v0, 10
 	addi $t0, $t0, -48	
@@ -1336,16 +1307,16 @@ push_string_to_string:
 	#Moving index of string 1 to end-of-line
 	push_string_to_string.string1.moveEOL.loop:
 	lb $t0, ($a0)
-	beq $t0, $0, push_string_to_string.string1.moveEOL.exit
-	beq $t0, 10, push_string_to_string.string1.moveEOL.exit
+	beq $t0, '\0', push_string_to_string.string1.moveEOL.exit
+	beq $t0, '\n', push_string_to_string.string1.moveEOL.exit
 	addi $a0, $a0, 1	#Increase index
 	j push_string_to_string.string1.moveEOL.loop
 	push_string_to_string.string1.moveEOL.exit:
 	#Pushing 
 	push_string_to_string.string2.push.loop:
 	lb $t0, ($a1)
-	beq $t0,  $0, push_string_to_string.string2.push.exit
-	beq $t0, 10, push_string_to_string.string2.push.exit
+	beq $t0, '\0', push_string_to_string.string2.push.exit
+	beq $t0, '\n', push_string_to_string.string2.push.exit
 	sb $t0, ($a0)	#push letter
 	addi $a0, $a0, 1	# address str_1 ++
 	addi $a1, $a1, 1	# address str_2 ++
@@ -1376,14 +1347,14 @@ convert_format_time:
 	sb $t0, day+0
 	lb $t0, 1($a0)
 	sb $t0, day+1
-	li $t0, 10
+	li $t0, '\n'
 	sb $t0, day+2
 	#Get month string (to string 'month')
 	lb $t0, 3($a0)
 	sb $t0, month+0
 	lb $t0, 4($a0)
 	sb $t0, month+1
-	li $t0, 10
+	li $t0, '\n'
 	sb $t0, month+2
 	#Get year string (to string 'year')
 	lb $t0, 6($a0)
@@ -1394,7 +1365,7 @@ convert_format_time:
 	sb $t0, year+2
 	lb $t0, 9($a0)
 	sb $t0, year+3
-	li $t0, 10
+	li $t0, '\n'
 	sb $t0, year+4
 	#Show notification of feature 2
 	li $v0, 4
@@ -1574,7 +1545,7 @@ NumberDay:
 	li $t5,153
 	mul $s1,$s1,$t5
 	mflo $s1
-	addi $t4,$s1,-457
+	subi $t4,$s1,457
 	li $t5,5
 	div $t4,$t5
 	mflo $t4 #t4=(153*month-457)/5
@@ -1584,7 +1555,7 @@ NumberDay:
 	add $t0,$t0,$t3
 	add $t0,$t0,$t4
 	add $t0,$t0,$s0 
-	addi $t0,$t0,-306
+	subi $t0,$t0,306
 	addi $t0,$t0,-1	
 	move $v0,$t0
 	j NumberDay.Exit
@@ -1606,25 +1577,101 @@ GetTime:
 	addi $sp,$sp,-16
 	sw $ra,($sp)
 	sw $a0,4($sp)
-	sw $t0,8($sp)
-	sw $t1,12($sp)
+	sw $t7,8($sp)
+	sw $t8,12($sp)
 	
 	jal NumberDay
-	move $t0,$v0
+	move $t7,$v0
 	
 	jal get_input
 	la $a0,TIME
-	jal NumberDay
-	move $t1,$v0
 	
-	sub $v0,$t1,$t0
+	
+	jal NumberDay
+	move $t8,$v0
+	
+	sub $v0,$t8,$t7
 	
 	GetTime.Exit:
 	lw $ra,($sp)
 	lw $a0,4($sp)
-	lw $t0,8($sp)
-	lw $t1,12($sp)
+	lw $t7,8($sp)
+	lw $t8,12($sp)
 	addi $sp,$sp,16
 	jr $ra
 	
+Output_Fifth:
+		#backup
+		addi $sp,$sp,-16
+		sw $ra,($sp)
+		sw $t0,4($sp)
+		sw $t1,8($sp)
+		sw $a0,12($sp)	
+		jal NumberDay
+		move $t0,$v0
+		move $t1,$a0
+		#xuat
+			
+		li $v0,4
+		la $a0,output_ques_fifth1
+		syscall
+				
+		la $a0,TIME
+		li $v0, 4 # output dd/mm/yyyy
+		syscall
+			
+	
+		li $v0,4
+		la $a0,output_ques_fifth2 #la
+		syscall
+				
+		li $v0,1
+		la $a0,($t0)
+		syscall	
+					
+		li $v0,4
+		la $a0,output_ques_fifth3 #ngay
+		syscall
+				
+		lw $ra,($sp)
+		lw $t0,4($sp)
+		lw $t1,8($sp)
+		lw $a0,12($sp)
+		addi $sp,$sp,16
+				
+		jr $ra
+Output_Seventh:
+	addi $sp,$sp,-4
+	sw $ra,($sp)
+
+	jal GetTime
+	move $t0,$v0
+	
+	li $v0,4 
+	la $a0,output_ques_seventh1
+	syscall
+	
+	
+	li $v0,4 
+	la $a0,output_ques_seventh2
+	syscall	
+	
+	la,$a0,TIME
+	syscall
+	
+	li $v0,4 
+	la $a0,output_ques_seventh3
+	syscall
+	
+
+	li $v0,1
+	la $a0,($t0)
+	syscall
+	
+	li $v0,4 
+	la $a0,output_ques_seventh4
+	syscall
+	lw $ra,($sp)
+	addi $sp,$sp,4
+	jr $ra
 #############################################################################################
