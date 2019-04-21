@@ -521,6 +521,13 @@ raise_invalid_input:
 					la $a0, invalid_input 	
 					syscall
 
+					lw $ra, 0($sp)
+					lw $a1, 8($sp)
+					lw $v0, 24($sp)
+					lw $a3, 28($sp)
+							
+					addi $sp, $sp, 32
+
 					j get_input			# Ask for input, again!
 output_invalid_input:   #checkday
 					li $v0,4
@@ -1190,8 +1197,8 @@ fill_blank_string:
 	#Loop fill '\0'
 	fill_blank_string.loop:
 	lb $t0, ($a0)
-	beq $t0, '\n', fill_blank_string.exit
-	beq $t0, '\0', fill_blank_string.exit
+	beq $t0, 10, fill_blank_string.exit
+	beq $t0, $0, fill_blank_string.exit
 	li $t0, 0
 	sb $t0, ($a0)
 	addi $a0, $a0, 1
@@ -1221,8 +1228,8 @@ atoi_D:
 atoi_loop_D:
 	
 	lb $t0, ($a0)
-	beq $t0, '\n', atoi_finish
-	beq $t0, '\0', atoi_finish
+	beq $t0, 10, atoi_finish
+	beq $t0, $0, atoi_finish
 		
 	mul $v0, $v0, 10
 	addi $t0, $t0, -48	
@@ -1329,16 +1336,16 @@ push_string_to_string:
 	#Moving index of string 1 to end-of-line
 	push_string_to_string.string1.moveEOL.loop:
 	lb $t0, ($a0)
-	beq $t0, '\0', push_string_to_string.string1.moveEOL.exit
-	beq $t0, '\n', push_string_to_string.string1.moveEOL.exit
+	beq $t0, $0, push_string_to_string.string1.moveEOL.exit
+	beq $t0, 10, push_string_to_string.string1.moveEOL.exit
 	addi $a0, $a0, 1	#Increase index
 	j push_string_to_string.string1.moveEOL.loop
 	push_string_to_string.string1.moveEOL.exit:
 	#Pushing 
 	push_string_to_string.string2.push.loop:
 	lb $t0, ($a1)
-	beq $t0, '\0', push_string_to_string.string2.push.exit
-	beq $t0, '\n', push_string_to_string.string2.push.exit
+	beq $t0,  $0, push_string_to_string.string2.push.exit
+	beq $t0, 10, push_string_to_string.string2.push.exit
 	sb $t0, ($a0)	#push letter
 	addi $a0, $a0, 1	# address str_1 ++
 	addi $a1, $a1, 1	# address str_2 ++
@@ -1369,14 +1376,14 @@ convert_format_time:
 	sb $t0, day+0
 	lb $t0, 1($a0)
 	sb $t0, day+1
-	li $t0, '\n'
+	li $t0, 10
 	sb $t0, day+2
 	#Get month string (to string 'month')
 	lb $t0, 3($a0)
 	sb $t0, month+0
 	lb $t0, 4($a0)
 	sb $t0, month+1
-	li $t0, '\n'
+	li $t0, 10
 	sb $t0, month+2
 	#Get year string (to string 'year')
 	lb $t0, 6($a0)
@@ -1387,7 +1394,7 @@ convert_format_time:
 	sb $t0, year+2
 	lb $t0, 9($a0)
 	sb $t0, year+3
-	li $t0, '\n'
+	li $t0, 10
 	sb $t0, year+4
 	#Show notification of feature 2
 	li $v0, 4
@@ -1567,7 +1574,7 @@ NumberDay:
 	li $t5,153
 	mul $s1,$s1,$t5
 	mflo $s1
-	subi $t4,$s1,457
+	addi $t4,$s1,-457
 	li $t5,5
 	div $t4,$t5
 	mflo $t4 #t4=(153*month-457)/5
@@ -1577,7 +1584,7 @@ NumberDay:
 	add $t0,$t0,$t3
 	add $t0,$t0,$t4
 	add $t0,$t0,$s0 
-	subi $t0,$t0,306
+	addi $t0,$t0,-306
 	addi $t0,$t0,-1	
 	move $v0,$t0
 	j NumberDay.Exit
