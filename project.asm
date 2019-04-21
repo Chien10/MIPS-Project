@@ -150,7 +150,25 @@ get_input:
 			jr $ra
 
 			# check if input is valid #
+get_input_1:
+			addi $sp, $sp, -12
+			sw $ra, 0($sp)
+			sw $a0, 4($sp)
+			sw $a1, 8($sp)
 
+			la $a0, TIME_1
+			la $a1, TEMP 		# To store day, month and year before combining them into TIME
+			
+			jal get_time_from_keyboard
+
+			lw $ra, 0($sp)
+			lw $a0, 4($sp)
+			lw $a1, 8($sp)
+			addi $sp, $sp, 12
+
+			jr $ra
+
+			# check if input is valid #
 print_tasks:
 			addi $sp, $sp, -12
 			sw $ra, 0($sp)
@@ -304,7 +322,7 @@ execute_task_fourth:
 execute_task_fifth:
 					addi $t3, $t2, -5
 					bne $t3, $0, execute_task_sixth
-				    jal Output_Fifth
+				    	jal Output_Fifth
 
 					j exit
 # Arguments: $a0: char* TIME
@@ -387,92 +405,11 @@ execute_task_eighth:
 					addi $t3, $t2, -8
 					bne $t3, $0, execute_task_ninth
 					#move $a0,$a3 #TIME
-	
-					jal CheckLeapYear
+					jal Output_Eighth
 					
-					li $t1,1
-					beq $v1,$t1, LeapNext   #t0=0 notleap
-					
-					move $v1,$a0  #v1=a0
-	
-					li $t1,4     # t1=4
-					div $v1,$t1  # year/4
-					mfhi $v1     # Hi
-					sub $a0,$a0,$v1 
-					# 2017 mod 4=1
-					# 2017-1=2016 is leapyear
-					j NotLeapNext
-
-LeapNext:
-					move $t1, $a0  # t0=nam(t0=2016)
-	
-					#output "Hai nam nhuan gan voi "
-					li $v0,4
-					la $a0, sub_eighth_choice1  
-					syscall
-					
-					
-					addi $a0,$t1,0
-					li $v0,1  
-					syscall
-					
-					li $v0,4
-					la $a0, sub_eighth_choice2  
-					syscall
-					
-					li $v1,4
-					sub $a0,$t1,4 # year-4
-					li $v0,1
-					syscall
-	
-	
-					move $t1,$a0    # t1=a0
-	
-					li $v0,4
-					la $a0, sub_eighth_choice3  # output "v "
-					syscall
-	
-					addi $a0, $t1, 8 # year+4
-					li $v0,1
-					syscall
-	
 					j exit
+	
 
-NotLeapNext:
-					move $t1, $a0  # t1=nam(t0=2016)
-					#output "Hai nam nhuan gan "
-					li $v0,4
-					la $a0, sub_eighth_choice1  
-					syscall
-					
-					add $a0,$t1,$v1
-					li $v0,1  
-					syscall
-					
-					move $a0,$t1
-					
-					li $v0,4
-					la $a0, sub_eighth_choice2  
-					syscall
-					
-					
-					addi $a0,$t1,0  # year
-					li $v0,1
-					syscall
-	
-	
-					move $t1,$a0    # t1=a0
-	
-					li $v0,4
-					la $a0, sub_eighth_choice3  # output "v "
-					syscall
-	
-					addi $a0, $t1,4 # year+4
-					li $v0,1
-					syscall
-	
-	
-					j exit
 
 execute_task_ninth:
 					addi $t3, $t2, -9
@@ -908,18 +845,18 @@ LeapYear:
 	bne $t1, $0, False # year%4!=0-> false
 	
 	li $t1, 100
-	div $a0, $t1  # year/100
-	mfhi $t1      # Hi
+	div $a0, $t1       # year/100
+	mfhi $t1           # Hi
 	beq $t1, $0, False #year%4==0 && year%100==0 ->False 
 	
 	
 True:
-	li $v1, 1 #true -> 1
+	li $v1, 1          #true -> 1
 	jr $ra
 	
 	
 False:
-	li $v1, 0 #false ->0
+	li $v1, 0          #false ->0
 	jr $ra
 	
 	
@@ -951,22 +888,22 @@ Weekday:
 	
 	
 	jal Year
-	move $t2, $v0    #t2=year
+	move $t2, $v0              #t2=year
 	
 	jal Day
-	move $t0, $v0    #t0=day
+	move $t0, $v0              #t0=day
 	
 	jal Month
-	move $t1, $v0    #t1=month
+	move $t1, $v0              #t1=month
 	
 
 	li $t3, 3
-	slt $t3,$t1,$t3          # month<3
-	beq $t3,$0, XacDinhThu   # month>3 ->XacDinhThu
-	addi $t1,$t1,12          # month=month+12  
+	slt $t3,$t1,$t3            # month<3
+	beq $t3,$0, Continue       # month>3 ->XacDinhThu
+	addi $t1,$t1,12            # month=month+12  
 	li $t3,1
-	sub $t2,$t2,$t3	         # year=year-1
-XacDinhThu:
+	sub $t2,$t2,$t3	           # year=year-1
+Continue:
 	move $s0,$t0               # s0=day
 	
 	li,$t3,2
@@ -1044,7 +981,92 @@ end:
 	
 	jr $ra	
 	
+Output_Eighth:
+	jal CheckLeapYear
+					
+	li $t1,1
+	beq $v1,$t1, LeapNext   #t0=0 notleap
+					
+	move $v1,$a0  #v1=a0
 	
+	li $t1,4     # t1=4
+	div $v1,$t1  # year/4
+	mfhi $v1     # Hi
+	sub $a0,$a0,$v1 
+	# 2017 mod 4=1
+	# 2017-1=2016 is leapyear
+	j NotLeapNext
+
+LeapNext:
+	move $t1, $a0  # t0=nam(t0=2016)
+	
+
+	li $v0,4
+	la $a0, sub_eighth_choice1  
+	syscall
+					
+					
+	addi $a0,$t1,0
+	li $v0,1  
+	syscall
+					
+	li $v0,4
+	la $a0, sub_eighth_choice2  
+	syscall
+					
+	li $v1,4
+	sub $a0,$t1,4 # year-4
+	li $v0,1
+	syscall
+	
+	
+	move $t1,$a0    # t1=a0
+	
+	li $v0,4
+	la $a0, sub_eighth_choice3  
+	syscall
+	
+	addi $a0, $t1, 8 # year+8
+	li $v0,1
+	syscall
+					
+	j exit
+	
+
+NotLeapNext:
+	move $t1, $a0  # t1=nam(t0=2016)
+					
+	li $v0,4
+	la $a0, sub_eighth_choice1  
+	syscall
+					
+	add $a0,$t1,$v1
+	li $v0,1  
+	syscall				
+					
+	move $a0,$t1
+					
+	li $v0,4
+	la $a0, sub_eighth_choice2  
+	syscall
+					
+					
+	addi $a0,$t1,0  # year
+	li $v0,1
+	syscall
+	
+	
+	move $t1,$a0    # t1=a0
+	
+	li $v0,4
+	la $a0, sub_eighth_choice3  
+	syscall
+	
+	addi $a0, $t1,4 # year+4
+	li $v0,1
+	syscall
+					
+	j exit
 	
 	
 CheckDay:
@@ -1129,7 +1151,7 @@ Check_Month_2:
 	beq $t3,$t0, Check_Month_2_Not_Leap
 	j TrueDate
 Check_Month_2_Not_Leap:
-	li $t3,29                        # t3=28
+	li $t3,29                        # t3=29
 	beq $t2,$t3, FalseDate
 	j TrueDate
 TrueDate:
@@ -1583,8 +1605,8 @@ GetTime:
 	jal NumberDay
 	move $t7,$v0
 	
-	jal get_input
-	la $a0,TIME
+	jal get_input_1
+	la $a0, TIME_1
 	
 	
 	jal NumberDay
@@ -1644,6 +1666,7 @@ Output_Seventh:
 	addi $sp,$sp,-4
 	sw $ra,($sp)
 
+	
 	jal GetTime
 	move $t0,$v0
 	
@@ -1651,21 +1674,25 @@ Output_Seventh:
 	la $a0,output_ques_seventh1
 	syscall
 	
+	la $a0, TIME
+	li $v0,4
+	syscall
 	
 	li $v0,4 
 	la $a0,output_ques_seventh2
 	syscall	
 	
-	la,$a0,TIME
+	li $v0,4
+	la $a0, TIME_1
 	syscall
+	
 	
 	li $v0,4 
 	la $a0,output_ques_seventh3
 	syscall
 	
-
 	li $v0,1
-	la $a0,($t0)
+	la $a0, ($t0)
 	syscall
 	
 	li $v0,4 
