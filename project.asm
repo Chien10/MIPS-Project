@@ -119,6 +119,10 @@ hooray:			.asciiz		"\nHoorayyy!\n"
 	ntf_2:	.asciiz	"Chuyen chuoi thanh 1 trong cac dinh dang sau:\n\tA. MM/DD/YYYY\n\tB. Month DD, YYYY\n\tC. DD Month, YYYY\n"
 
 ##############################################################################
+#Dong########################################################################
+output_ques_fifth1: .asciiz "Khoang cach tu ngay 01/01/0001 den "
+output_ques_fifth2: .asciiz " la "
+############################################################################
 
 				.text
 main:			
@@ -301,10 +305,32 @@ execute_task_fourth:
 execute_task_fifth:
 					addi $t3, $t2, -5
 					bne $t3, $0, execute_task_sixth
-					jal NumberDay
-					move $t0,$v0
-					li $v0,1
+					#backup
+					addi $sp,$sp,-8
+					sw $a0,($sp)
+					sw $t0,4($sp)
+					move $t0,$a0
+					#xuat
+					li $v0,4
+					la $a0,output_ques_fifth1
+					syscall
+					
+					li $v0,4
 					la $a0,($t0)
+					syscall
+					
+					li $v0,4
+					la $a0,output_ques_fifth2
+					syscall
+					
+					lw $a0,($sp)
+					lw $t0,4($sp)
+					addi $sp,$sp,8
+					
+					jal NumberDay
+					move $t1,$v0
+					li $v0,1
+					la $a0,($t1)
 					syscall
 
 					j exit
