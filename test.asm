@@ -127,25 +127,24 @@ hooray:			.asciiz		"\nHoorayyy!\n"
 
 				.text
 main:			
+		la $a0, TIME
 		jal get_input
 		jal print_tasks
 		jal get_choice
 
+# Argument: $a0: pointer to TIME or TIME_1 or TIME_2
 get_input:
-			addi $sp, $sp, -12
+			addi $sp, $sp, -8
 			sw $ra, 0($sp)
-			sw $a0, 4($sp)
-			sw $a1, 8($sp)
+			sw $a1, 4($sp)
 
-			la $a0, TIME
 			la $a1, TEMP 		# To store day, month and year before combining them into TIME
 			
 			jal get_time_from_keyboard
 
 			lw $ra, 0($sp)
-			lw $a0, 4($sp)
-			lw $a1, 8($sp)
-			addi $sp, $sp, 12
+			lw $a1, 4($sp)
+			addi $sp, $sp, 8
 
 			jr $ra
 
@@ -427,6 +426,7 @@ raise_invalid_input:
 					la $a0, invalid_input 	
 					syscall
 
+					# Restore stack in get_time_from_keyboard
 					lw $ra, 0($sp)
 					lw $a1, 8($sp)
 					lw $v0, 24($sp)
@@ -1532,8 +1532,8 @@ DMY.Exit:
 	
 #End function atoi()
 NumberDay:
-#Input a0<-TIME
-#Output SoNgay t? 1/1/1
+#Input $a0 <- TIME
+#Output SoNgay tu 1/1/1
 	#backup
 	addi $sp,$sp,-32
 	sw $ra,($sp)
@@ -1605,9 +1605,8 @@ GetTime:
 	jal NumberDay
 	move $t7,$v0
 	
-	jal get_input_1
-	la $a0, TIME_1
-	
+	la $a0, TIME_2
+	jal get_time_from_keyboard
 	
 	jal NumberDay
 	move $t8,$v0
